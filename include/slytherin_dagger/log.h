@@ -7,7 +7,9 @@
 
 #ifndef LOG_H
 #define LOG_H
-
+#ifdef __unix
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#endif
 #include <stdio.h>
 #include "guided_mode_console.h"
 

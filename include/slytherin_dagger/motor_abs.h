@@ -19,6 +19,10 @@ void motor_abs_debug_getptrs(sCmd **base_cmd_ptr, sCmd **outer_cmd_ptr,
 		sUSBComm **usb_state_ptr);
 #endif
 
+#ifdef __unix
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#endif
+
 void mot_apply(void);
 void motor_abs_init(char *com_port_name);
 int pause_motor(int motor, int paused);

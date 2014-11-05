@@ -2,7 +2,7 @@
 
 
 // data structure to hold warnings and errors
-
+#include <stdbool.h>
 
 extern ProcErr ErrP;
 extern bool RecoverFlag;

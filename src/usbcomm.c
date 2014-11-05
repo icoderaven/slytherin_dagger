@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../system/crc32.h"
-#include "../system/state.h"
-#include "../communication_interface/crossplatformserial.h"
-#include "../communication_interface/usbcomm.h"
+#include "crc32.h"
+#include "state.h"
+#include "crossplatformserial.h"
+#include "usbcomm.h"
 #include <assert.h>
 #include "debug.h"
-#include "../probe_control/CardioError.h"
-#include "../probe_control/superCommon.h"
-#include "../probe_control/config_defaults.h"
+#include "CardioError.h"
+#include "superCommon.h"
+#include "config_defaults.h"
 
 extern int TestBaseRelay;
 extern int TestOuterRelay;
@@ -18,8 +18,8 @@ extern int Buzzers_on;
 
 
 #define VER_NUM 0x00020000
-extern BOOL InnerSnakeLock;
-extern BOOL OuterSnakeLock;
+extern bool InnerSnakeLock;
+extern bool OuterSnakeLock;
 //#define VERBOSE
 
 
@@ -48,7 +48,7 @@ void init_sCmd(sCmd *inCmd) {
 	}
 	inCmd->pkt_seq_number = 0;
 }
-static DOUBLE send_time = 0;
+static double send_time = 0;
 
 
 // Prints the status contained in a usbcomm state structure
@@ -171,16 +171,6 @@ int usbcomm_timeslice(sUSBComm *state) {
 		 	state->outerCmd.SafetyCmd &= ~SFT_C_VOLT_TEST;
 		 }
     }
-
-	// Turn on or off the buzzers as requested by the supervisor
-	if (Buzzers_on) {
-        state->baseCmd.SafetyCmd |= SFT_C_BUZZER;
-        state->outerCmd.SafetyCmd |= SFT_C_BUZZER;
-	}
-	else {
-        state->baseCmd.SafetyCmd &= ~SFT_C_BUZZER;
-        state->outerCmd.SafetyCmd &= ~SFT_C_BUZZER;
-	}
 
     if (state->DcuFlags & CLEAR_BIT) {
         state->baseCmd.SafetyCmd |= SFT_C_CLR_ERR;

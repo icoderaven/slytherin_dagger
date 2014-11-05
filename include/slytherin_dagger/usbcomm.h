@@ -8,7 +8,7 @@
  */
 
 
-#include "../system/state.h"
+#include "state.h"
 #include "cps_thread.h"  // for TRUE FALSE definitions
 #include <stdio.h>
 

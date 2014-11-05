@@ -1,13 +1,10 @@
-#include <windows.h>
-#include <winbase.h>
 #include <string.h> // For memset
-#include "../communication_interface/usbcomm.h"
+#include "usbcomm.h"
 #include "guided_motions.h"
 #include "CardioError.h"
 #include "superCommon.h"
 #include "supervisor.h"
 #include "ErrMessages.h"
-#include "keithley.h"
 #include "log.h"
 
 // Indicates all relays were tested successfully

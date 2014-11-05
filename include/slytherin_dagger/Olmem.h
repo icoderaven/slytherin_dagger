@@ -13,7 +13,7 @@ ABSTRACT:
 
 ---------------------------------------------------------------------------*/
 
-#include <oltypes.h>
+#include "OLTYPES.H"
 
 typedef struct tagTDS 
    {

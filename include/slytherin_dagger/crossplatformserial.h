@@ -18,6 +18,7 @@
   #define B2400 CBR_2400
 #else
   #include <termios.h>
+#include <stdbool.h>
   typedef int FD_TYPE;
 #endif
 

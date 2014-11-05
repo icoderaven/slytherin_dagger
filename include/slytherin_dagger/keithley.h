@@ -1,8 +1,8 @@
 //Keithley hearder file written by jwm
 
-#include <olmem.h>         
-#include <olerrors.h>         
-#include <oldaapi.h>
+#include "Olmem.h"
+#include "OLERRORS.h"
+#include "OLDAPI.h"
 
 /* Error handling macros */
 

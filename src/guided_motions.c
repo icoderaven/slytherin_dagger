@@ -79,7 +79,7 @@ static FILE *guided_mode_log_file;
 FILE * guided_motions_log_init( char*fname )
 {
 	FILE *log_file = NULL;
-	fopen_s(&log_file, fname, "a");
+	fopen(&log_file, fname, "a");
 	fprintf(log_file, "NewMode, InnerSlide, OuterSlide, InnerTensioner, ULTensioner, URTensioner, BTensioner \n");
 	return (log_file);
 }

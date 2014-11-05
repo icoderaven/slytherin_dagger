@@ -31,7 +31,7 @@
 	 DP("WindowsError: %s\n", inStr);
  }
  int GetTickCount(void) {
- 	timeval t;
+ 	struct timeval t;
     long long work;
     gettimeofday(&t,NULL);
     work = t.tv_sec;

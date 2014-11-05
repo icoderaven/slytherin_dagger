@@ -24,7 +24,7 @@ FILE* init_state_log(char *fname) {
 	FILE* state_log = 0;
 
 	state_log = NULL;
-	fopen_s(&state_log, fname, "a");
+	fopen(&state_log, fname, "a");
 	if (state_log == NULL) {
 		printf("ERROR!! Failed to open log %s.\n", fname);
 	}

@@ -6,19 +6,18 @@
 
 
 #include <stdio.h>
-#include <conio.h>
+//#include <curses.h>
 #include "motor_abs.h"
 #include "config_defaults.h"
-#include "log.h"
-#include "../system/crc32.h"		// Only need this to build the table on init
-#include "../system/state.h"		// Used to keep track of device state
-#include "../communication_interface/usbcomm.h"	// Used to send an receive, etc.
-#include "log_state.h"
+#include "crc32.h"		// Only need this to build the table on init
+#include "state.h"		// Used to keep track of device state
+#include "usbcomm.h"	// Used to send an receive, etc.
+//#include "log_state.h"
 #include "CardioError.h"
 #include "ErrorData.h"
 #include "superCommon.h"
-#include "keithley.h"
-#include "../system/motor.h"
+//#include "keithley.h"
+#include "motor.h"
 
 #define NUM_MOTORS 6
 
@@ -65,13 +64,6 @@ static sState base_state, outer_state;
 static sUSBComm usb_state;
 extern sUSBComm *Pusb_state;
 
-static FILE *base_command_log;
-static FILE *outer_command_log;
-static FILE *base_communication_log;
-static FILE *outer_communication_log;
-static FILE *pos_log;
-static FILE *base_state_log;
-static FILE *outer_state_log;
 static unsigned int base_last_timestamp;
 static unsigned int outer_last_timestamp;
 
@@ -113,42 +105,6 @@ void motor_abs_debug_getptrs(sCmd **base_cmd_ptr, sCmd **outer_cmd_ptr,
 void motor_abs_init(char *com_port_name) {
 	int i;
 	char fname[100];
-
-	sprintf_s(fname, sizeof(fname), "logs/%s_base_state_log.csv",
-			filename_time());
-	base_state_log = init_state_log(fname);
-
-	sprintf_s(fname, sizeof(fname), "logs/%s_outer_state_log.csv",
-			filename_time());
-	outer_state_log = init_state_log(fname);
-
-	sprintf_s(fname, sizeof(fname), "logs/%s_base_command_log.csv",
-			filename_time());
-	base_command_log = NULL;
-	fopen_s(&base_command_log,fname, "a");
-
-	sprintf_s(fname, sizeof(fname), "logs/%s_outer_command_log.csv",
-			filename_time());
-	outer_command_log = NULL;
-	fopen_s(&outer_command_log,fname, "a");
-
-	sprintf_s(fname, sizeof(fname), "logs/%s_base_communication_log.csv",
-			filename_time());
-	base_communication_log = NULL;
-	fopen_s(&base_communication_log,fname, "a");
-
-	sprintf_s(fname, sizeof(fname), "logs/%s_outer_communication_log.csv",
-			filename_time());
-	outer_communication_log = NULL;
-	fopen_s(&outer_communication_log,fname, "a");
-	pos_log = NULL;
-	fopen_s(&pos_log,"pos_log.txt", "w");
-
-	fprintf(base_command_log, "Time, Packet Seq Num, SafetyCmd, Outer Slide Seq, Outer Slide K_P, Outer Slide K_I, Outer Slide K_D, Outer Slide Goal, Outer Slide Ta, Outer Slide Tg, Outer Slide Current Limit, Outer Slide Current Inc, Outer Slide Current Dec, Outer Slide mtr_bits, Inner Slide Seq, Inner Slide K_P, Inner Slide K_I, Inner Slide K_D, Inner Slide Goal, Inner Slide Ta, Inner Slide Tg, Inner Slide Current Limit, Inner Slide Current Inc, Inner Slide Current Dec, Inner Slide mtr_bits, Inner Tensioner Seq, Inner Tensioner K_P, Inner Tensioner K_I, Inner Tensioner K_D, Inner Tensioner Goal, Inner Tensioner Ta, Inner Tensioner Tg, Inner Tensioner Current Limit, Inner Tensioner Current Inc, Inner Tensioner Current Dec, Inner Tensioner mtr_bits, \n");
-	fprintf(outer_command_log,"Time, Packet Seq Num, SafetyCmd, UR Tensioner Seq, UR Tensioner K_P, UR Tensioner K_I, UR Tensioner K_D, UR Tensioner Goal, UR Tensioner Ta, UR Tensioner Tg, UR Tensioner Current Limit, Upper Right Tensioner Current Inc, Upper Right Tensioner Current Dec, Upper Right Tensioner mtr_bits, UL Tensioner Seq, UL Tensioner K_P, UL Tensioner K_I, UL Tensioner K_D, UL Tensioner Goal, UL Tensioner Ta, UL Tensioner Tg, UL Tensioner Current Limit, UL Tensioner Current Inc, UL Tensioner Current Dec, UL Tensioner mtr_bits, Bottom Tensioner Seq, Bottom Tensioner K_P, Bottom Tensioner K_I, Bottom Tensioner K_D, Bottom Tensioner Goal, Bottom Tensioner Ta, Bottom Tensioner Tg, Bottom Tensioner Current Limit, Bottom Tensioner Current Inc, Bottom Tensioner Current Dec, Bottom Tensioner mtr_bits\n");
-
-	fprintf(base_communication_log, "Timestamp, comm rx count, comm rx lastseq, comm tx count, comm crc err,  comm overrun, comm frame err, usb rx count, usb rx error, usb rx lastseq, usb tx_ count \n");
-	fprintf(outer_communication_log, "Timestamp, comm rx count, comm rx lastseq, comm tx count, comm crc err,  comm overrun, comm frame err \n");
 
 
 	// First, build the CRC table
@@ -263,13 +219,9 @@ void mot_apply() {
 	}
 
 
-	fprintf(pos_log, "apply()\n");
-	fflush(pos_log);
+
 
 	// Save what we just sent
-
-	usbcomm_printCmd(base_command_log, &base_cmd);
-	usbcomm_printCmd(outer_command_log, &outer_cmd);
 
 }
 
@@ -317,8 +269,7 @@ int set_position(int motor, float dist, float tg) {
 	motor_t *mot;
 
 	//fprintf(snake_log, "\nset_position(motor=%d, dist=%f, tg=%f)\n", motor, dist, tg);
-	fprintf(pos_log, "sp(%d,%f)\n", motor, dist);
-	fflush(pos_log);
+
 	//printf("\nset_position(motor=%d, dist=%f, tg=%f)\n", motor, dist, tg);
 
 	// Make sure we're given a valid motor
@@ -367,8 +318,7 @@ float get_position(int motor) {
 	// Make sure we're given a valid motor
 	if (motor < 0 || motor >= NUM_MOTORS) {
         SetErrorBit(M_DCU,DCU_ERR_INDEX_MOTOR);
-		log_printf(LOG_ERROR, "Invalid motor number %d passed to get_position!\n",
-				motor);
+
 		printf("Invalid motor number %d passed to get_position\n", motor);
 		return -1;
 	}
@@ -400,8 +350,7 @@ void rezero(int motor) {
 	// Make sure that we're given a valid motor
 	if (motor < 0 || motor >= NUM_MOTORS) {
         SetErrorBit(M_DCU,DCU_ERR_INDEX_MOTOR);
-		log_printf(LOG_ERROR, "Invalid motor number %d specified at line "
-				"%d in %s.\n", motor, __LINE__, __FILE__);
+
 		return;
 	}
 
@@ -463,8 +412,7 @@ float get_force(int motor) {
 	// Make sure we're given a valid motor
 	if (motor < 0 || motor >= NUM_MOTORS) {
         SetErrorBit(M_DCU,DCU_ERR_INDEX_MOTOR);
-		log_printf(LOG_ERROR, "Invalid motor number %d passed to get_force().",
-				motor);
+
 		//exit(1);
 		return -1;
 	}
@@ -491,19 +439,7 @@ void mot_main(void) {
 	// Get any updates in state
 	usbcomm_getStates(&usb_state, &base_state, &outer_state);
 
-	// save processor state packets
-	if (base_state.timestamp > base_last_timestamp )
-	{
-		base_last_timestamp = base_state.timestamp;
-		log_state_packet(base_state_log, &base_state);
-		usbcomm_printState(base_communication_log, &base_state);
-	}
-	if (outer_state.timestamp > outer_last_timestamp)
-	{
-		outer_last_timestamp = outer_state.timestamp;
-		log_state_packet (outer_state_log, &outer_state);
-		usbcomm_printState(outer_communication_log, &outer_state);
-	}
+
 }
 
 
@@ -516,8 +452,7 @@ int get_limit_sw(int mot) {
 	}
 	else {
         SetErrorBit(M_DCU,DCU_ERR_INDEX_MOTOR);
-		log_printf(LOG_ERROR,
-				"Invalid motor number %d passed to get_limit_sw().", mot);
+
 		return 0;
 	}
 

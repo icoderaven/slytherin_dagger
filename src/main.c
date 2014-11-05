@@ -4,7 +4,7 @@
  *	@author Cornell Wright
  */
 #include <stdio.h>
-#include <conio.h>
+#include <curses.h>
 #include <iostream>
 #include "log.h"
 #include "config_defaults.h"
@@ -16,15 +16,14 @@
 
 #include "guided_mode_console.h"
 #include "guided_motions.h"
-#include <windows.h>
 #include "gui_main.h"
 #include "gui_support.h"
 #include "gui_callbacks.h"
-#include <gtk/gtk.h>
+#include <gtk-3.0/gtk/gtk.h>
 #include "keithley.h"
 #include "superCommon.h"
-#include "../system/crc32.h"
-#include "../snakeVisualizer/snakelibgl.h"
+#include "crc32.h"
+#include "snakelibgl.h"
 
 #define BUFSIZE 1024
 

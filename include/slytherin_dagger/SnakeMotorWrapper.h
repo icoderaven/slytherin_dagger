@@ -1,11 +1,13 @@
 #pragma once
 #include <geometry_msgs/Twist.h>
+#include <string.h>
+extern "C"{
+#include "motor_abs.h"
+}
 
 class SnakeMotorWrapper{
 private:
-	int a;
 public:
-	SnakeMotorWrapper(){a = 0;}
-
+	SnakeMotorWrapper(std::string);
 	void callback(const geometry_msgs::Twist::ConstPtr& );
 };
