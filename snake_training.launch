@@ -1,0 +1,18 @@
+<launch>
+
+
+<param name="~dataset_train" value="" />
+<param name="~dataset_test" value="" />
+<param name="~path_bag" value="" />
+<param name="~predy_file" value="" />
+<param name="~predp_file" value="" />
+<param name="~pub_record" value="" />
+
+<param name="~feature_weighted" value=0 type=bool/>
+<param name="~sample_weight_type" value="None" />
+<param name="~quickload" value=0 type=bool/>
+<param name="~cv_fold" value=1 />
+
+<node name="snake_trainer"  pkg="slytherin_dagger" type="snake_trainer_node" />
+
+</launch>
