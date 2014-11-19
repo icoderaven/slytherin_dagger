@@ -16,7 +16,7 @@ import os.path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import src.linear_predictor as predictor
-import src.default_feature_constructor as feature
+import src.visual_features as feature
 from std_msgs.msg import Empty
 from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Twist
@@ -69,10 +69,6 @@ class Controller:
         self.last_yaw = 0.0
         self.last_pitch = 0.0
         dt = 1.0 / float(self.ctrl_rate_hz)
-        self.filters_K = np.zeros(self.nb_ctrl_filters)
-        self.filtered_prv_ctrl = np.zeros(self.nb_ctrl_filters)
-        for i in range(self.nb_ctrl_filters):
-            self.filters_K[i] = (pow(self.ctrl_filters_pow, i) - 1.0) * dt
 
     #----------------------------------------------------------------------
     #load parameter from parameter server
@@ -92,8 +88,6 @@ class Controller:
         self.fwd_vel_gain = rospy.get_param('~fwd_vel_gain')
         self.fwd_vel_max = rospy.get_param('~fwd_vel_max')
         self.altitude_vel_max = rospy.get_param('~altitude_vel_max')
-        self.nb_ctrl_filters = rospy.get_param('~nb_ctrl_filters')
-        self.ctrl_filters_pow = rospy.get_param('~ctrl_filters_pow')
         self.do_record = rospy.get_param('~do_record')
         self.record_dir = rospy.get_param('~record_dir')
         self.pub_cmd_vel = rospy.get_param('~pub_cmd_vel')
@@ -146,7 +140,6 @@ class Controller:
     def joy_start_update(self, empty):  #start issued from joystick
         rospy.loginfo("[DAgger] Start Detected")
         self.is_auto = True
-        self.filtered_prv_ctrl = np.zeros(self.nb_ctrl_filters)
         self.last_yaw = 0.0
         self.last_pitch = 0.0
 
@@ -187,14 +180,8 @@ class Controller:
             dt = event.current_real.to_time() - event.last_real.to_time()
 
 ################################### construct feature array
-        #update features history ctrl
-        for i in range(self.nb_ctrl_filters):
-            self.filtered_prv_ctrl[i] = feature.low_pass_filter(self.filtered_prv_ctrl[i], self.last_lin_y, dt,
-                                                                self.filters_K[i])
 
-        (feat_array, feat_weights) = feature.construct_weighted(self.last_vis_feat, self.filtered_prv_ctrl,
-                                                                self.navdata_feature.yaw_error,
-                                                                self.navdata_feature.y_velocity)
+        feat_array = feature.find_2Dcenter(self.last_vis_feat)
 ##########################################################
         expert_yaw = self.last_joy_vel.angular.y * self.joy_yaw_gain
         expert_pitch = self.last_joy_vel.anglular.z * self.joy_pitch_gain

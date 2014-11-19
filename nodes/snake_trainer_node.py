@@ -162,7 +162,6 @@ class Trainer:
         self.pub_record = rospy.get_param('~pub_record')
         self.feature_weighted = rospy.get_param('~feature_weighted')
         self.sample_weight_type = rospy.get_param('~sample_weight_type')
-        self.nb_ctrl_filters = rospy.get_param('~nb_ctrl_filters')
         self.quickload = rospy.get_param('~quickload')
 
 
@@ -356,13 +355,6 @@ if __name__ == '__main__':
         ds_train = ds_train_orig
 
 
-
-##############################################################
-    if (learner.feature_weighted == True):
-        (feat_array_dummy, feature_weights) = feature.construct_weighted(
-            np.zeros(ds_train_orig.X.shape[1] - learner.nb_ctrl_filters - 3), np.zeros(learner.nb_ctrl_filters), [0],
-            [0])
-##############################################################
     if learner.cv_fold <= 1:
         rospy.loginfo("[DAgger] No Cross-Validation: Training on a total of %d datapoints with %d features", ds_train.r,
                       ds_train.c)
