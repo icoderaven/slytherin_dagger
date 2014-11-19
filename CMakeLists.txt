@@ -94,7 +94,7 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
+include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
@@ -105,8 +105,8 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-# add_executable(slytherin_dagger_node src/slytherin_dagger_node.cpp)
-
+add_executable(test src/main.c)
+add_executable(joystick_node nodes/joystick_node.cpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(slytherin_dagger_node slytherin_dagger_generate_messages_cpp)
