@@ -86,35 +86,41 @@ void TeleopJoystick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   // Takeoff, land and reset commands
   if(joy->buttons[init_])
     {
+      std::cout<<"[Joystick Driver] Initialize!\n";
       std_msgs::Empty empty;
       init_pub_.publish(empty);
     }
 
   if(joy->buttons[pause_])
     {
+      std::cout<<"[Joystick Driver] Pause!\n";
       std_msgs::Empty empty;
       pause_pub_.publish(empty);
     }
 
   if(joy->buttons[retract_])
     {
+      std::cout<<"[Joystick Driver] Retract!\n";
       std_msgs::Empty empty;
       retract_pub_.publish(empty);
     }
 
   if(joy->buttons[execute_])
     {
+      std::cout<<"[Joystick Driver] Execute!\n";
       std_msgs::Empty empty;
       execute_pub_.publish(empty);
     }
 
   if(joy->buttons[homing_])
     {
+      std::cout<<"[Joystick Driver] Home!\n";
       std_msgs::Empty empty;
       homing_pub_.publish(empty);
     }
   if(joy->buttons[stepped_])
     {
+      std::cout<<"[Joystick Driver] Stepped!\n";
       std_msgs::Empty empty;
       stepped_pub_.publish(empty);
     }

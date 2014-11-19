@@ -1,0 +1,18 @@
+<launch>
+
+    <node name="joy_node" pkg="joy" type="joy_node" respawn="false" output="screen" >
+         <param name="dev" type="string" value="/dev/input/js0" />
+	 <param name="deadzone" value="0.05" />
+    </node>
+	
+    <node name="joystick_node" pkg="slytherin_dagger" type="joystick_node" respawn="false" output="screen" >
+         <param name="forward_backward" type="int" value="1" /> 
+     	 <param name="left_right" type="int" value="0" /> 
+         <param name="up_down" type="int" value="5" /> 	 
+	 <param name="rotate" type="int" value="2" /> 
+	 <param name="takeoff" type="int" value="1" /> 
+	 <param name="translation_scale" type="double" value="1.0" /> 
+	 <param name="angular_scale" type="double" value="-0.25" /> 
+	 <param name="output_name" type="string" value="cmd_vel" /> 
+    </node>
+</launch>
