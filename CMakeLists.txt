@@ -112,9 +112,8 @@ add_executable(joystick_node nodes/joystick_node.cpp)
 # add_dependencies(slytherin_dagger_node slytherin_dagger_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(slytherin_dagger_node
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(joystick_node   ${catkin_LIBRARIES}
+ )
 
 #############
 ## Install ##

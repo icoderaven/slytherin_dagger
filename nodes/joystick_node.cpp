@@ -18,7 +18,7 @@ private:
 
   int forward_backward_, left_right_, up_down_, rotate_, init_, pause_, retract_, execute_, homing_, stepped_;
   double translation_scale_, angular_scale_;
-  ros::Publisher vel_pub_, take_off_pub_, land_pub_, reset_pub_, start_pub_, stop_pub_;
+  ros::Publisher vel_pub_, init_pub_, pause_pub_, retract_pub_, execute_pub_, homing_pub_, stepped_pub_;
   ros::Subscriber joy_sub_;
   std::string output_name_;
 };
