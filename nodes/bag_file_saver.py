@@ -24,6 +24,7 @@ class BagSaver:
         
         self.last_joy_msg = None
         self.last_img_msg = None
+	self.last_time = rospy.Time.now()
         
         self.bag_file = rosbag.Bag(self.bag_file_path, 'w')
         
@@ -66,9 +67,12 @@ class BagSaver:
             
         
     def write_bag(self):
-	rospy.loginfo('[BagWriter] Adding data tuple')
-        self.bag_file.write(self.joy_topic, self.last_joy_msg)
-        self.bag_file.write(self.img_topic, self.last_img_msg)
+	
+        if (rospy.Time.now() - self.last_time).to_sec() > 3:
+	    rospy.loginfo('[BagWriter] Adding data tuple')
+            self.bag_file.write(self.joy_topic, self.last_joy_msg)
+            self.bag_file.write(self.img_topic, self.last_img_msg)
+	    self.last_time = rospy.Time.now()
 
 if __name__ == '__main__':
     rospy.init_node('bag_file_saver')
