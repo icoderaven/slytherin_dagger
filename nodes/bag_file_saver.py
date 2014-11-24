@@ -10,6 +10,8 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Empty
 from sensor_msgs.msg import Image
 
+from cv_bridge import CvBridge, CvBridgeError
+import cv2
 import rosbag.Bag
 
 class BagSaver:
@@ -18,11 +20,14 @@ class BagSaver:
         self.img_topic = rospy.get_param('~img_topic', default='\camera\image_raw')
         self.execute_topic = rospy.get_param('~execute_topic', default='\execute')
         self.bag_file_path = rospy.get_param('~bag_file_path')
+        self.fix_image = rospy.get_param('~fix_image', default=True)
         
         self.last_joy_msg = None
         self.last_img_msg = None
         
         self.bag_file = rosbag.Bag(self.bag_file_path, 'w')
+        
+        self.bridge = CvBridge()
         
         self.joy_sub = rospy.Subscriber(self.joy_topic, Twist, self.joy_update, queue_size=1)
         self.img_sub = rospy.Subscriber(self.img_topic, Image, self.img_update, queue_size=1)
@@ -35,7 +40,14 @@ class BagSaver:
         self.last_joy_msg = data
         
     def img_update(self, data):
-        self.last_img_msg = data
+        '''If the input image is garbled because of UVC camera shenanigans, fix the encoding'''
+        if self.fix_image == True:
+            cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='passthrough')
+            #Convert from yuv2 to rgb
+            cv_image = cv2.cvtColor(cv_image, cv2.COLOR_YUV2BGR)
+            self.last_img_msg = self.bridge.cv2_to_imgmsg(cv_image, encoding='bgr8')
+        else:
+            self.last_img_msg = data
         
     def execute_update(self, data):
         '''Write the latest two messages to the bagfile'''
