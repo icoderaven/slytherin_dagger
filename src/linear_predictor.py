@@ -11,6 +11,7 @@ class LinearPredictor:
     def __init__(self):
         self.m_w = 0
         self.m_mean_x = 0
+        self.m_mean_y = 0
         self.m_std_x = 1
 
         # ----------------------------------------------------------------------
@@ -22,6 +23,7 @@ class LinearPredictor:
         self.m_w = A[0, :]
         self.m_mean_x = A[1, :]
         self.m_std_x = A[2, :]
+        self.m_mean_y = A[3, 0]
 
     #----------------------------------------------------------------------
     #compute ouput prediction given input features
@@ -30,7 +32,7 @@ class LinearPredictor:
         #renormalize features
         xtmp = (feat_array - self.m_mean_x) / self.m_std_x
         #compute dot product between features and predictor
-        return np.dot(xtmp, self.m_w)
+        return np.dot(xtmp, self.m_w) + self.m_mean_y
 
     def to_string(self):
         print self.m_w
@@ -42,9 +44,10 @@ def load(filename):
     return pred
 
 
-def train(X, y, filename, options, feature_weight=np.array([1.0]), sample_weight_type="None"):
+def train(X, y, filename, options, feature_weight=np.array([1.0]), sample_weight_type="None",print_flag=0):
     mean_x = X.mean(0)
     std_x = X.std(0)
+    mean_y = y.mean(0)
     n = mean_x.size
     # hack to keep bias feature when removing mean and renormalizing with std
     #mean_x[n - 1] = 0;
@@ -63,6 +66,7 @@ def train(X, y, filename, options, feature_weight=np.array([1.0]), sample_weight
         options = np.array([1])
 
     # compute sample weights
+    y = y
     m = y.size
     sample_weights = np.ones(m)
     X_sub = np.array([])
@@ -83,6 +87,7 @@ def train(X, y, filename, options, feature_weight=np.array([1.0]), sample_weight
             ytmp = y[abs(y) <= nonzero_val]
             X_sub = np.vstack((X_sub, Xtmp[range(0, m - nb_nonzero, int((m - nb_nonzero) / nb_nonzero)), :]))
             y_sub = np.append(y_sub, ytmp[range(0, m - nb_nonzero, int((m - nb_nonzero) / nb_nonzero))])
+            y_sub = y_sub - mean_y
         else:
             X_sub = X[abs(y) <= nonzero_val, :]
             y_sub = y[abs(y) <= nonzero_val]
@@ -90,44 +95,29 @@ def train(X, y, filename, options, feature_weight=np.array([1.0]), sample_weight
             ytmp = y[abs(y) > nonzero_val]
             X_sub = np.vstack((X_sub, Xtmp[range(0, nb_nonzero, int(nb_nonzero / (m - nb_nonzero))), :]))
             y_sub = np.append(y_sub, ytmp[range(0, nb_nonzero, int(nb_nonzero / (m - nb_nonzero)))])
-
-    A = np.zeros((3, n))
+            y_sub = y_sub - mean_y
+    y = y - mean_y
+    A = np.zeros((4, n))
     A[1, :] = mean_x
     A[2, :] = std_x
-    for i in range(0, options.size):
+    A[3,:] = mean_y
+
+    for i in range(options.size):
         print "[DAgger] Training with Regularizer %f" % (options[i])
+
         reg = math.sqrt(r) * options[i]
-        #ridge = linear_model.Ridge(alpha=reg, fit_intercept=False)
         outname, outext = os.path.splitext(filename)
         fname = "%s-%f%s" % (outname, options[i], outext)
-        #ridge.fit(X,y)
-        #w = ridge.coef_
-        #print feature_weight
-        #w = basispursuit(X,y,m_reg1,m_reg2)
-        if sample_weight_type == "weighted":
-            w = own_ridge(X, y, options[i], feature_weight, sample_weights)
+        ridge = linear_model.Ridge(alpha=reg, fit_intercept=False)
+        if sample_weight_type == "None":
+            ridge.fit(X,y)
+            w = ridge.coef_
         elif sample_weight_type == "subsample":
-            w = own_ridge(X_sub, y_sub, options[i], feature_weight, np.array([]))
-        else:
-            w = own_ridge(X, y, options[i], feature_weight, np.array([]))
+            ridge.fit(X_sub,y_sub)
+            w = ridge.coef_
+        if print_flag ==1:
+            print "[DAgger] learned weights: ",w
         A[0, :] = w
         np.save(fname, A)
 
 
-def own_ridge(X, y, reg, feature_weight, sample_weight):
-    (r, c) = X.shape
-    reg_mat = np.eye(c)
-    if feature_weight.size > 1:
-        reg_mat = np.diag(feature_weight)
-
-    # Sample weights
-    if sample_weight.size > 1:
-        sum_weights = np.sum(sample_weight)
-        Ws = np.diag(sample_weight)
-        XT_W = np.dot(X.T, Ws)
-        # return np.dot(np.dot(la.inv(np.dot(XT_W, X) + reg * math.sqrt(sum_weights) * reg_mat), XT_W), y)
-        return np.linalg.solve(np.dot(XT_W, X) + reg * math.sqrt(sum_weights) * reg_mat, np.dot(XT_W, y))
-    else:
-        print X.shape
-        # return np.dot(np.dot(la.inv(np.dot(X.T, X) + reg * math.sqrt(r) * reg_mat), X.T), y)
-        return np.linalg.solve(np.dot(X.T, X) + reg * math.sqrt(r) * reg_mat, np.dot(X.T, y))

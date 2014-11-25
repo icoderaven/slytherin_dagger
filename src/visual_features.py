@@ -2,30 +2,29 @@
 
 import cv2
 import numpy as np
-import pdb
 
 
-def find_2Dcenter(original):
-    retval, image = cv2.threshold(original, 5, 5, cv2.THRESH_BINARY)
+def findholecentre(original):
+
+    retval, image = cv2.threshold(original,40, 255, cv2.THRESH_BINARY)
 
     # cv2.imshow('thresh', image)
     # cv2.waitKey(-1)
 
 
-    bars, contours, hierarchy = cv2.findContours(image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     temp = original.copy()
 
     for cnt in contours:
         cv2.drawContours(temp, [cnt], 0, 255, -1)
-    print len(contours)
     #cv2.imshow('contours', temp) #temp is the mask
     #cv2.waitKey(-1)
 
     ###########################################################################
     #here we apply the mask on the original image after inverse thresholding it
     ###########################################################################
-    retval, thresh1 = cv2.threshold(original, 5, 5, cv2.THRESH_BINARY_INV)
+    retval, thresh1 = cv2.threshold(original, 40, 255, cv2.THRESH_BINARY_INV)
     #cv2.imshow('inverted thresh1', thresh1)
     #cv2.waitKey(-1)
 
