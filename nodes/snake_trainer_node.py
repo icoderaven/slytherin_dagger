@@ -19,8 +19,9 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import src.linear_predictor as predictor
 
-import src.default_feature_constructor as feature
-
+import src.visual_features as feature
+from cv_bridge import CvBridge, CvBridgeError
+import cv2
 
 class Dataset:
     def __init__(self):
@@ -29,6 +30,7 @@ class Dataset:
         self.pitch = np.array([])  # target output (r x 1 vector)
         self.r = 0  # number of datapoints in X
         self.c = 0  # number of features
+        self.bridge = CvBridge()
 
     def load(self, ds, path_bag, pub_record):
         rospy.loginfo("[DAgger] Opening dataset %s", ds)
@@ -63,6 +65,48 @@ class Dataset:
                 self.pitch = np.append(self.pitch, ar[n - 1])  #this takes last elem of ar
                 self.r += 1
                 self.c = n - 2
+            rospy.loginfo("[DAgger] Loaded %d datapoints from bag file", self.r - last_nb)
+            last_nb = self.r
+            bag.close()
+        f.close()
+
+    def load2(self, ds, path_bag, pub_record,act_record):
+        rospy.loginfo("[DAgger] Opening dataset %s", ds)
+        last_nb = 0
+        f = open(ds, 'r')
+        # load all bags in f
+        for line in f:
+            # open the current bag file
+            line2 = line.rstrip(' \t\n')
+            rospy.loginfo("[DAgger] Opening bag file %s", path_bag + line2)
+            try:
+                bag = rosbag.Bag(path_bag + line2)
+            except rosbag.bag.ROSBagUnindexedException:
+                rospy.loginfo("[DAgger] Unindexed Bag file %s. Attempting to reindex", path_bag + line2)
+                call(shlex.split("rosbag reindex %s" % (path_bag + line2)))
+                try:
+                    bag = rosbag.Bag(path_bag + line2)
+                    rospy.loginfo("[DAgger] Reindexing Succesful")
+                except rosbag.bag.ROSBagUnindexedException:
+                    rospy.loginfo("[DAgger] Reindexing failed, skipping file %s", path_bag + line2)
+                    continue
+            # look at msg in dagger_record topic
+            for topic, msg,t in bag.read_messages(topics=[pub_record]):
+                #convert msg.data to a numpy array
+                ar = np.array(self.bridge.imgmsg_to_cv2(msg,desired_encoding= 'passthrough'), dtype=np.uint8)
+                n = ar.size
+                if self.r == 0:
+                    self.X = ar[:,:,:,np.newaxis]
+                else:
+                    self.X = np.concatenate((self.X, ar[:,:,:,np.newaxis]),axis=3)
+                self.r += 1
+                self.c = n
+            for topic, msg, t in bag.read_messages(topics=[act_record]):
+                #rospy.loginfo("msg %s",msg)
+                yaw = np.array(msg.linear.x,dtype=np.float32)
+                pitch = np.array(msg.linear.y,dtype=np.float32)
+                self.yaw = np.append(self.yaw, yaw)
+                self.pitch = np.append(self.pitch, pitch)
             rospy.loginfo("[DAgger] Loaded %d datapoints from bag file", self.r - last_nb)
             last_nb = self.r
             bag.close()
