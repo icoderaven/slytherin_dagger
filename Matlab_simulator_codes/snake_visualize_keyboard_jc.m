@@ -1,13 +1,46 @@
+%launch a roscore master
+% setenv('ROS_MASTER_URI','http://bird:11311/')
+% setenv('ROS_HOSTNAME','bird')
+% if ~exist('roscore','var')
+%     display('Starting ROS')
+%     roscore = rosmatlab.roscore(11311);
+% end
+% create node that publishes [features actions] to record_simul_bag topic
+if ~ exist('feat_action_node','var')
+    display('Creating Node')
+    feat_action_node = rosmatlab.node('feature_action_node');%, roscore.RosMasterUri);
+    
+    % publishers
+%     rec_pub = rosmatlab.publisher('sim_rec', 'std_msgs/Float32MultiArray', feat_action_node);
+    
+    start_pub  = rosmatlab.publisher('key_start', 'std_msgs/Empty', feat_action_node);
+    
+    stop_pub = rosmatlab.publisher('key_stop', 'std_msgs/Empty', feat_action_node);
+    
+    key_pub = rosmatlab.publisher('key_vel', 'geometry_msgs/Twist', feat_action_node);
+    
+    vis_pub = rosmatlab.publisher('vis_features', 'std_msgs/Float32MultiArray', feat_action_node);
+    % subscriber
+    vel_sub = rosmatlab.subscriber('sim_cmd_vel','geometry_msgs/Twist',10,feat_action_node); % subscribes to a Twist message
+    vel_sub.setOnNewMessageListeners(@update_myglobalstate)
+end
+%%
 %hold on
 close all
-clear
+% clear
 clc
 P3=[40,0,0];
 
 pitch0=0;
 yaw0=0;
 [phi0,theta0]=pithyawtoaxisangle(pitch0,yaw0);
-state=[0,0,0,0,0,0,phi0,theta0];
+
+% true_state is where the snake actually advances.
+global global_state;
+global_state = [0,0,0,0,0,0,phi0,theta0];
+% state is used for expert exploration.
+state = global_state;
+
 drawColor=[0.2 length(state)/66 0.3 ];%drawColor=drawColor/norm(drawColor);
 LINK_LENGTH=4;
 LINK_RADIUS=1.5;
@@ -40,8 +73,9 @@ scatter3(x,y,z);
 [h, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
 view([90+state(end-1) state(end)])
 hold off
-over=0;
+
 %%
+over=0;
 pitch=0;
 yaw=0;
 inc=1*pi/180;
@@ -49,55 +83,52 @@ maxrange=10*pi/180;
 boxsize=20;
 steps=10;
 count=0;
+start_flag =1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% publish start recording
+if start_flag ==1
+    start_msg = rosmatlab.message('std_msgs/Empty', feat_action_node);
+    start_pub.publish(start_msg);
+end
+
 while over==0 && length(state)<66
     
-    %read from keyboard
+    
     [voxel_mat,filled_voxels,flag]=findvoxelsinbox(voxels,snakePoints(end,:)',boxsize,steps);
     
-    
     val=getkey();
-    %display(val);
-    if val ~=32 && val~=113
-        
-        if val==29
-            pitch=pitch+inc;
-        elseif val==28
-            pitch=pitch-inc;
-        elseif val==30
-            yaw=yaw+inc;
-        elseif val==31
-            yaw=yaw-inc;
-        end
-        if pitch>maxrange
-            pitch=maxrange;
-        elseif pitch<-maxrange
-            pitch=-maxrange;
-        end
-        
-        if yaw>maxrange
-            yaw=maxrange;
-        elseif yaw<-maxrange
-            yaw=-maxrange;
-        end
-        
-        [phi,theta]=pithyawtoaxisangle(pitch,yaw);
-        %display([pitch,yaw,phi,theta]);
-        state(end-1)=phi;
-        state(end)=theta;
-        state=adderror(state,0);
-    end
+    %read from keyboard
+    [yaw,pitch,state] = get_expert_cmd(state,yaw,pitch,maxrange,inc,val);
+    
     if val==32
         if flag==1
             count=count+1;
             log_data{count}=[filled_voxels,pitch,yaw];
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Publish features
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% and actions
+            vis_msg = rosmatlab.message('std_msgs/Float32MultiArray', feat_action_node);
+            vis_msg.setData(filled_voxels);
+            vis_pub.publish(vis_msg);
+            
+            pause(0.1)
+            ctrl_msg = rosmatlab.message('geometry_msgs/Twist', feat_action_node);
+            ctrl_msg = construct_ctrl_msg(ctrl_msg,yaw,pitch);
+            key_pub.publish(ctrl_msg);
         end
+        pause(0.1)
+        %%%%% this part is done when subscriber receives control;
         pitch=0;yaw=0;
-        state=adderror(state,1);
-        state=[state,0,0];
+        global_state
+        state = global_state;
+%         state=adderror(state,1);
+%         state=[state,0,0];
         
     end
     if val==113
         over=1;
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% STOP RECORDING
+        stop_msg = rosmatlab.message('std_msgs/Empty', feat_action_node);
+        stop_pub.publish(stop_msg);
     end
     clf
     
