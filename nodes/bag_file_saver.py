@@ -36,12 +36,13 @@ class BagSaver:
         
         self.bridge = CvBridge()
         
-        self.joy_sub = rospy.Subscriber(self.joy_topic, Twist, self.joy_update, queue_size=1)
+	self.publisher = rospy.Publisher('/my_test', Image,queue_size=1);         
+	self.joy_sub = rospy.Subscriber(self.joy_topic, Twist, self.joy_update, queue_size=1)
         self.img_sub = rospy.Subscriber(self.img_topic, Image, self.img_update, queue_size=1)
         self.empty_sub = rospy.Subscriber(self.execute_topic, Empty, self.execute_update, queue_size=1)
         if self.dagger_active:
             self.array_sub = rospy.Subscriber(self.array_topic, Float32MultiArray, self.array_update, queue_size=1)  
-        self.publisher = rospy.Publisher('/my_test', Image,queue_size=1); 
+        
     
     def __del__(self):
         self.bag_file.close()
@@ -59,7 +60,6 @@ class BagSaver:
             new_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
 	    new_msg = self.bridge.cv2_to_imgmsg(new_image, encoding='bgr8')
 	    if self.last_img_msg is None and (rospy.Time.now() - self.last_time).to_sec() > 4:
-
             	self.last_img_msg = new_msg
 	    
             self.publisher.publish(new_msg)

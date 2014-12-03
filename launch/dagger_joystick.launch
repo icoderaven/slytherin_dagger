@@ -24,9 +24,9 @@
 
     <node name="snake_controller_node" pkg="slytherin_dagger" type="snake_controller_node.py" output="screen" >
 	<param name="load_pred" type="bool" value="true" /> 
-	<param name="predy_file" type="string" value="/home/icoderaven/predictors/predy.pkl" />
-	<param name="predp_file" type="string" value="/home/icoderaven/predictors/predp.pkl" />  
-	<param name="ctrl_rate_hz" type="double" value="60" />
+	<param name="predy_file" type="string" value="/home/icoderaven/predictors/predy-1.000000-bestl2yaw.npy" />
+	<param name="predp_file" type="string" value="/home/icoderaven/predictors/predp-1.000000-bestl2pit.npy" />  
+	<param name="ctrl_rate_hz" type="double" value="10" />
 	<param name="expert_prob" type="double" value="0.9" /> 
 	<param name="pitch_gain" type="double" value="1.0" />
 	<param name="pitch_max" type="double" value="1.0" />  
