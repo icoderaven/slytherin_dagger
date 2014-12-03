@@ -82,8 +82,8 @@ pitch=0;
 yaw=0;
 inc=1*pi/180;
 maxrange=10*pi/180;
-boxsize=20;
-steps=10;
+boxsize=10;
+steps=50;
 count=0;
 start_flag =1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% publish start recording
@@ -92,11 +92,11 @@ if start_flag ==1
     start_pub.publish(start_msg);
 end
 
-while over==0 && length(state)<66
+while over==0 && length(state)<=66
     
     
-    [voxel_mat,filled_voxels,flag]=findvoxelsinbox(voxels,snakePoints(end,:)',boxsize,steps);
-    
+    [voxel_mat,filled_voxels,flag,validpoints]=findvoxelsinbox(voxels,snakePoints(end,:)',boxsize,steps);
+%     voxel_mat(:)
     val=getkey();
     %read from keyboard
     [yaw,pitch,state] = get_expert_cmd(state,yaw,pitch,maxrange,inc,val);
@@ -120,9 +120,10 @@ while over==0 && length(state)<66
         pause(0.1)
         %%%%% this part is done when subscriber receives control;
         pitch=0;yaw=0;
-        global_state
+        %         global_state
         state_msg = rosmatlab.message('std_msgs/Float32MultiArray', feat_action_node);
-        state_msg.setData(globael_state);
+        state_msg.setData(global_state);
+        pause(0.5);
         state_pub.publish(state_msg);
         
         state = global_state;
@@ -142,8 +143,13 @@ while over==0 && length(state)<66
     drawColor=[0.2 length(state)/66 0.3 ];
     hold on
     subplot(2,2,1)
+    
     scatter3(x,y,z,'red','fill','s');
     hold on
+    if length(validpoints)>1
+        scatter3(validpoints(1,:)+10,validpoints(2,:)+5,validpoints(3,:)-10,'black','fill','s');
+    end
+    
     scatter3(P3(1),P3(2),P3(3),150,'green','fill')
     [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
     P1 = snakePoints(end,:);
@@ -151,40 +157,57 @@ while over==0 && length(state)<66
     pts = [P1; P2];
     line(pts(:,1), pts(:,2), pts(:,3))
     axis([0 150 -50 50 -50 50]);
-    view([90,90])
+    title('0,0')
+    view([0,0])
     
     subplot(2,2,2)
+    
     scatter3(x,y,z,'red','fill','s');
     hold on
+    
+    if length(validpoints)>1
+        scatter3(validpoints(1,:)+10,validpoints(2,:)+5,validpoints(3,:)-10,'black','fill','s');
+    end
     scatter3(P3(1),P3(2),P3(3),150,'green','fill')
     [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
     line(pts(:,1), pts(:,2), pts(:,3))
     axis([0 150 -50 50 -50 50]);
-    %view([90+state(end-1)*180/pi state(end)*180/pi])
-    view([0,0])
+    %     view([90+state(end-1)*180/pi state(end)*180/pi])
+    title('-180,0')
+    view([-180,0])
     
     
     subplot(2,2,3)
+    
     scatter3(x,y,z,'red','fill','s');
     hold on
+    if length(validpoints)>1
+        scatter3(validpoints(1,:)+10,validpoints(2,:)+5,validpoints(3,:)-10,'black','fill','s');
+    end
     scatter3(P3(1),P3(2),P3(3),150,'green','fill')
     [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
     line(pts(:,1), pts(:,2), pts(:,3))
     axis([0 150 -50 50 -50 50]);
-    %view([90+state(end-1)*180/pi state(end)*180/pi])
-    view([90,0])
+    %     view([90+state(end-1)*180/pi state(end)*180/pi])
+    title('0,90')
+    view([0,90])
     
     
     
     subplot(2,2,4)
+    
     scatter3(x,y,z,'red','fill','s');
     hold on
+    if length(validpoints)>1
+        scatter3(validpoints(1,:)+10,validpoints(2,:)+5,validpoints(3,:)-10,'black','fill','s');
+    end
     scatter3(P3(1),P3(2),P3(3),150,'green','fill')
     [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
     line(pts(:,1), pts(:,2), pts(:,3))
     axis([0 150 -50 50 -50 50]);
     %view([90+state(end-1)*180/pi state(end)*180/pi])
-    view([0,90])
+    title('-90,90')
+    view([-90,90])
     
     
     hold off

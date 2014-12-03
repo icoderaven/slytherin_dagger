@@ -92,7 +92,7 @@ class Controller:
         self.pub_joy_start = rospy.get_param('pub_joy_start')
         self.pub_joy_stop = rospy.get_param('pub_joy_stop')
         self.pub_vis_feat = rospy.get_param('pub_vis_feat')
-        self.pub_state = rospy.get_param('pub_state',default='state')
+        self.pub_state = rospy.get_param('pub_state', default='pose_info')
 
     #----------------------------------------------------------------------
     #subscribe callbacks to sensor data topics
@@ -110,8 +110,8 @@ class Controller:
     #----------------------------------------------------------------------
     def init_publishers(self):
         rospy.logdebug("[DAgger] Initializing Publishers")
-        self.cmd_vel_publisher = rospy.Publisher(self.pub_cmd_vel, Twist)
-        self.record_publisher = rospy.Publisher(self.pub_record, Float32MultiArray)
+        self.cmd_vel_publisher = rospy.Publisher(self.pub_cmd_vel, Twist,queue_size=10)
+        self.record_publisher = rospy.Publisher(self.pub_record, Float32MultiArray,queue_size=10)
 
 
     #======== code for sensor data subscriber callback ========
@@ -124,10 +124,10 @@ class Controller:
         #create numpy array with visual features
         self.last_vis_feat = np.array(features.data, dtype=np.float32)
 
-    def state_update(self, state):
-        rospy.logdebug("[DAgger] Received state Update: %s", np.array(state.data, dtype=np.float32))
+    def state_update(self, state_msg):
+        rospy.logdebug("[DAgger] Received state Update: %s", np.array(state_msg.data, dtype=np.float32))
         #create numpy array with visual features
-        self.last_state = np.array(state.data, dtype=np.float32)
+        self.last_state = np.array(state_msg.data, dtype=np.float32)
 
     #----------------------------------------------------------------------
     #callback for joystick velocity update
@@ -186,7 +186,7 @@ class Controller:
 ################################### construct feature array
 
         feat_array = self.last_vis_feat ### ..............find features..........
-        state = self.state
+        state = self.last_state
 ##########################################################
         expert_yaw = self.last_joy_vel.linear.x * self.yaw_gain
         expert_pitch = self.last_joy_vel.linear.y * self.pitch_gain
@@ -199,8 +199,8 @@ class Controller:
 
         rospy.loginfo("[DAgger] predicted yaw: %f", pred_yaw)
         rospy.loginfo("[DAgger] expert yaw: %f", expert_yaw)
-        rospy.loginfo("[DAgger] predicted yaw: %f", pred_pitch)
-        rospy.loginfo("[DAgger] expert yaw: %f", expert_pitch)
+        rospy.loginfo("[DAgger] predicted pitch: %f", pred_pitch)
+        rospy.loginfo("[DAgger] expert pitch: %f", expert_pitch)
 
 
         #record current datapoint for learning

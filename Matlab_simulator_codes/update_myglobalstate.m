@@ -13,4 +13,6 @@ global_state(end)=theta;
 global_state=adderror(global_state,0);
 
 global_state=adderror(global_state,1);
+if length(global_state)<66
 global_state=[global_state,0,0];
+end
