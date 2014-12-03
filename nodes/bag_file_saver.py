@@ -19,7 +19,7 @@ class BagSaver:
         self.joy_topic = rospy.get_param('~joy_topic', default='/cmd_vel')
         self.img_topic = rospy.get_param('~img_topic', default='/camera/image_raw')
         self.execute_topic = rospy.get_param('~execute_topic', default='/execute')
-        self.bag_file_path = rospy.get_param('~bag_file_path', default='/home/icoderaven/test.bag')
+        self.bag_file_path = rospy.get_param('~bag_file_path', default='/home/icoderaven/test'+str(rospy.Time.now().secs)+'.bag')
         self.fix_image = rospy.get_param('~fix_image', default=True)
         
         self.last_joy_msg = None
@@ -49,8 +49,12 @@ class BagSaver:
             cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='passthrough')
             #Convert from yuv2 to rgb
             new_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
-            self.last_img_msg = self.bridge.cv2_to_imgmsg(new_image, encoding='bgr8')
-            self.publisher.publish(self.last_img_msg)
+	    new_msg = self.bridge.cv2_to_imgmsg(new_image, encoding='bgr8')
+	    if self.last_img_msg is None and (rospy.Time.now() - self.last_time).to_sec() > 4:
+
+            	self.last_img_msg = new_msg
+	    
+            self.publisher.publish(new_msg)
         else:
             self.last_img_msg = data
         
@@ -68,7 +72,7 @@ class BagSaver:
         
     def write_bag(self):
 	
-        if (rospy.Time.now() - self.last_time).to_sec() > 3:
+        if (rospy.Time.now() - self.last_time).to_sec() > 1:
 	    rospy.loginfo('[BagWriter] Adding data tuple')
             self.bag_file.write(self.joy_topic, self.last_joy_msg)
             self.bag_file.write(self.img_topic, self.last_img_msg)
