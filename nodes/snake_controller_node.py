@@ -13,10 +13,9 @@ import shlex
 import sys
 import os.path
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
-import src.linear_predictor as predictor
-import src.visual_features as feature
+sys.path.append(roslib.packages.get_pkg_dir('slytherin_dagger')+'/src')
+import linear_predictor as predictor
+import visual_features as feature
 from std_msgs.msg import Empty
 from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Twist
@@ -48,14 +47,6 @@ class Controller:
         rospy.loginfo("[DAgger] Starting Control Loop")
         rospy.Timer(rospy.Duration(1.0 / self.ctrl_rate_hz), self.update_control)
 
-    #----------------------------------------------------------------------
-    #desconstructor
-    #----------------------------------------------------------------------
-    def __del__(self):
-        #stop recording bag file if we were
-        if self.record_proc_started:
-            self.record_proc.send_signal(subprocess.signal.SIGINT)
-            self.record_proc.wait()
 
     #----------------------------------------------------------------------
     #init member variables
@@ -63,7 +54,6 @@ class Controller:
     def init_variables(self):
         rospy.logdebug("[DAgger] Initializing Variables")
         self.is_auto = False
-        self.record_proc_started = False
         self.last_vis_feat = np.array([])
         self.last_joy_vel = Twist()
         self.last_yaw = 0.0
@@ -80,19 +70,13 @@ class Controller:
         self.predp_file = rospy.get_param('~predp_file')
         self.ctrl_rate_hz = rospy.get_param('~ctrl_rate_hz')
         self.expert_prob = rospy.get_param('~expert_prob')
-        self.pitch_gain = rospy.get_param('~ang_z_gain')
-        self.pitch_max = rospy.get_param('~ang_z_max')
-        self.yaw_gain = rospy.get_param('~ang_y_gain')
-        self.yaw_max = rospy.get_param('~ang_y_max')
-        self.fwd_vel_gain = rospy.get_param('~fwd_vel_gain')
-        self.fwd_vel_max = rospy.get_param('~fwd_vel_max')
-        self.do_record = rospy.get_param('~do_record')
-        self.record_dir = rospy.get_param('~record_dir')
+        self.pitch_gain = rospy.get_param('~pitch_gain')
+        self.pitch_max = rospy.get_param('~pitch_max')
+        self.yaw_gain = rospy.get_param('~yaw_gain')
+        self.yaw_max = rospy.get_param('~yaw_max')
         self.pub_cmd_vel = rospy.get_param('~pub_cmd_vel')
         self.pub_record = rospy.get_param('~pub_record')
         self.pub_joy_vel = rospy.get_param('~pub_joy_vel')
-        self.pub_joy_start = rospy.get_param('~pub_joy_start')
-        self.pub_joy_stop = rospy.get_param('~pub_joy_stop')
         self.pub_vis_feat = rospy.get_param('~pub_vis_feat')
 
     #----------------------------------------------------------------------
@@ -101,8 +85,6 @@ class Controller:
     def init_subscribers(self):
         rospy.logdebug("[DAgger] Initializing Subscribers")
         rospy.Subscriber(self.pub_joy_vel, Twist, self.joy_vel_update)
-        rospy.Subscriber(self.pub_joy_start, Empty, self.joy_start_update)
-        rospy.Subscriber(self.pub_joy_stop, Empty, self.joy_stop_update)
         rospy.Subscriber(self.pub_vis_feat, Float32MultiArray, self.vis_feat_update)
 
     #----------------------------------------------------------------------
@@ -132,41 +114,19 @@ class Controller:
         #store last velocity command from expert
         self.last_joy_vel = vel
 
-    #----------------------------------------------------------------------
-    #callback for start update
-    #----------------------------------------------------------------------
-    def joy_start_update(self, empty):  #start issued from joystick
-        rospy.loginfo("[DAgger] Start Detected")
-        self.is_auto = True
-        self.last_yaw = 0.0
-        self.last_pitch = 0.0
-
-        if self.do_record:
-            self.record_proc = subprocess.Popen(shlex.split("rosbag record -a"), cwd=self.record_dir)
-            self.record_proc_started = True
-
-    #----------------------------------------------------------------------
-    #callback for stop update
-    #----------------------------------------------------------------------
-    def joy_stop_update(self, empty):  #stop issued from joystick
-        rospy.loginfo("[DAgger] Stop Detected")
-        self.is_auto = False
-        if self.record_proc_started:
-            self.record_proc.send_signal(subprocess.signal.SIGINT)
-
     #======== code for computing and sending controls to snake ========
 
     #----------------------------------------------------------------------
     #construct control msg to send to snake from output prediction
     #----------------------------------------------------------------------
-    def construct_control_msg(self, fwd_vel, pred_yaw, pred_pitch):
+    def construct_control_msg(self, pred_yaw, pred_pitch):
         ctrl = Twist()
-        ctrl.linear.x = fwd_vel
-        ctrl.linear.y = 0.0
+        ctrl.linear.x = pred_yaw
+        ctrl.linear.y = pred_pitch
         ctrl.linear.z = 0.0
         ctrl.angular.x = 0.0
-        ctrl.angular.y = pred_yaw
-        ctrl.angular.z = pred_pitch
+        ctrl.angular.y = 0.0
+        ctrl.angular.z = 0.0
         return ctrl
 
     #----------------------------------------------------------------------
@@ -178,7 +138,6 @@ class Controller:
             dt = event.current_real.to_time() - event.last_real.to_time()
 
 ################################### construct feature array
-
         feat_array = feature.find_2Dcenter(self.last_vis_feat)
 ##########################################################
         expert_yaw = self.last_joy_vel.angular.y * self.joy_yaw_gain
@@ -195,13 +154,10 @@ class Controller:
         rospy.loginfo("[DAgger] predicted yaw: %f", pred_pitch)
         rospy.loginfo("[DAgger] expert yaw: %f", expert_pitch)
 
-        fwd_vel = self.fwd_vel_max
-        rospy.loginfo("[DAgger] fwd vel: %f", fwd_vel)
-
         #record current datapoint for learning
-        self.record(feat_array, expert_yaw, expert_pitch)
+        self.record(feat_array, expert_yaw, expert_pitch, pred_yaw, pred_pitch)
         #send control message
-        ctrl_msg = self.construct_control_msg(fwd_vel, pred_yaw, pred_pitch)
+        ctrl_msg = self.construct_control_msg(pred_yaw, pred_pitch)
         self.send_control_msg(ctrl_msg)
         self.last_yaw = pred_yaw
         self.last_pitch = pred_pitch
@@ -231,9 +187,9 @@ class Controller:
     #----------------------------------------------------------------------
     #record current feature vector with target yaw and pitch in record topic
     #----------------------------------------------------------------------
-    def record(self, feat_array, pred_yaw, pred_pitch):
+    def record(self, feat_array, expert_yaw, expert_pitch, pred_yaw, pred_pitch):
         if self.do_record:
-            ar = np.append(feat_array, pred_yaw, pred_pitch)
+            ar = np.append(feat_array, expert_yaw, expert_pitch, pred_yaw, pred_pitch)
             self.record_publisher.publish(None, ar)
 
 
