@@ -1,0 +1,40 @@
+<launch>
+
+    <node name="joy_node" pkg="joy" type="joy_node" respawn="false" output="screen" >
+         <param name="dev" type="string" value="/dev/input/js0" />
+	 <param name="deadzone" value="0.05" />
+    </node>
+	
+    <node name="joystick_node" pkg="slytherin_dagger" type="joystick_node" respawn="false" output="screen" >
+         <param name="forward_backward" type="int" value="1" /> 
+     	 <param name="left_right" type="int" value="0" /> 
+         <param name="up_down" type="int" value="5" /> 	 
+	 <param name="rotate" type="int" value="2" /> 
+	 <param name="takeoff" type="int" value="1" /> 
+	 <param name="translation_scale" type="double" value="1.0" /> 
+	 <param name="angular_scale" type="double" value="-0.25" /> 
+	 <param name="output_name" type="string" value="joy_vel" /> 
+    </node>
+    <node name="bag_file_saver" pkg="slytherin_dagger" type="bag_file_saver.py" output="screen">
+	 <param name="joy_topic" type="string" value="/joy_vel" /> 
+	 <param name="bag_file_path" type="string" value="test.bag" /> 
+	 <param name="dagger_active" type="bool" value="true" />
+    </node>
+
+
+    <node name="snake_controller_node" pkg="slytherin_dagger" type="snake_controller_node.py" output="screen" >
+	<param name="load_pred" type="bool" value="true" /> 
+	<param name="predy_file" type="string" value="/home/icoderaven/predictors/predy.pkl" />
+	<param name="predp_file" type="string" value="/home/icoderaven/predictors/predp.pkl" />  
+	<param name="ctrl_rate_hz" type="double" value="60" />
+	<param name="expert_prob" type="double" value="0.9" /> 
+	<param name="pitch_gain" type="double" value="1.0" />
+	<param name="pitch_max" type="double" value="1.0" />  
+	<param name="yaw_gain" type="double" value="1.0" /> 
+	<param name="yaw_max" type="double" value="1.0" /> 
+	<param name="pub_cmd_vel" type="string" value="/cmd_vel" />
+	<param name="pub_record" type="string" value="/record" />
+	<param name="pub_joy_vel" type="string" value="/joy_vel" />
+	<param name="pub_vis_feat" type="string" value="/my_test" />
+</node>
+</launch>
