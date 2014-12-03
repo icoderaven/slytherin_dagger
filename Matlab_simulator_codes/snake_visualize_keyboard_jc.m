@@ -11,7 +11,7 @@ if ~ exist('feat_action_node','var')
     feat_action_node = rosmatlab.node('feature_action_node');%, roscore.RosMasterUri);
     
     % publishers
-%     rec_pub = rosmatlab.publisher('sim_rec', 'std_msgs/Float32MultiArray', feat_action_node);
+    %     rec_pub = rosmatlab.publisher('sim_rec', 'std_msgs/Float32MultiArray', feat_action_node);
     
     start_pub  = rosmatlab.publisher('key_start', 'std_msgs/Empty', feat_action_node);
     
@@ -20,9 +20,11 @@ if ~ exist('feat_action_node','var')
     key_pub = rosmatlab.publisher('key_vel', 'geometry_msgs/Twist', feat_action_node);
     
     vis_pub = rosmatlab.publisher('vis_features', 'std_msgs/Float32MultiArray', feat_action_node);
+    
+    state_pub = rosmatlab.publisher('pose_info', 'std_msgs/Float32MultiArray', feat_action_node);
     % subscriber
     vel_sub = rosmatlab.subscriber('sim_cmd_vel','geometry_msgs/Twist',10,feat_action_node); % subscribes to a Twist message
-    vel_sub.setOnNewMessageListeners(@update_myglobalstate)
+    vel_sub.setOnNewMessageListeners({@update_myglobalstate})
 end
 %%
 %hold on
@@ -119,9 +121,13 @@ while over==0 && length(state)<66
         %%%%% this part is done when subscriber receives control;
         pitch=0;yaw=0;
         global_state
+        state_msg = rosmatlab.message('std_msgs/Float32MultiArray', feat_action_node);
+        state_msg.setData(globael_state);
+        state_pub.publish(state_msg);
+        
         state = global_state;
-%         state=adderror(state,1);
-%         state=[state,0,0];
+        %         state=adderror(state,1);
+        %         state=[state,0,0];
         
     end
     if val==113
@@ -145,7 +151,7 @@ while over==0 && length(state)<66
     pts = [P1; P2];
     line(pts(:,1), pts(:,2), pts(:,3))
     axis([0 150 -50 50 -50 50]);
-    view(3)
+    view([90,90])
     
     subplot(2,2,2)
     scatter3(x,y,z,'red','fill','s');

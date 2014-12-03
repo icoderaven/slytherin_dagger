@@ -69,6 +69,7 @@ class Controller:
         self.last_joy_vel = Twist()
         self.last_yaw = 0.0
         self.last_pitch = 0.0
+        self.last_state = np.array([])
         #dt = 1.0 / float(self.ctrl_rate_hz)
 
     #----------------------------------------------------------------------
@@ -76,7 +77,7 @@ class Controller:
     #----------------------------------------------------------------------
     def load_params(self):
         rospy.logdebug("[DAgger] Loading Params")
-        self.load_pred = rospy.get_param('load_pred', default= False)
+        self.load_pred = rospy.get_param('load_pred', default=False)
         self.predy_file = rospy.get_param('predy_file')
         self.predp_file = rospy.get_param('predp_file')
         self.ctrl_rate_hz = rospy.get_param('ctrl_rate_hz')
@@ -91,6 +92,7 @@ class Controller:
         self.pub_joy_start = rospy.get_param('pub_joy_start')
         self.pub_joy_stop = rospy.get_param('pub_joy_stop')
         self.pub_vis_feat = rospy.get_param('pub_vis_feat')
+        self.pub_state = rospy.get_param('pub_state',default='state')
 
     #----------------------------------------------------------------------
     #subscribe callbacks to sensor data topics
@@ -101,6 +103,7 @@ class Controller:
         rospy.Subscriber(self.pub_joy_start, Empty, self.joy_start_update)
         rospy.Subscriber(self.pub_joy_stop, Empty, self.joy_stop_update)
         rospy.Subscriber(self.pub_vis_feat, Float32MultiArray, self.vis_feat_update)
+        rospy.Subscriber(self.pub_state, Float32MultiArray, self.state_update)
 
     #----------------------------------------------------------------------
     #initialize publisher to send velocity commands to quadrotor
@@ -120,6 +123,11 @@ class Controller:
         rospy.logdebug("[DAgger] Received Visual Feature Update: %s", np.array(features.data, dtype=np.float32))
         #create numpy array with visual features
         self.last_vis_feat = np.array(features.data, dtype=np.float32)
+
+    def state_update(self, state):
+        rospy.logdebug("[DAgger] Received state Update: %s", np.array(state.data, dtype=np.float32))
+        #create numpy array with visual features
+        self.last_state = np.array(state.data, dtype=np.float32)
 
     #----------------------------------------------------------------------
     #callback for joystick velocity update
@@ -178,6 +186,7 @@ class Controller:
 ################################### construct feature array
 
         feat_array = self.last_vis_feat ### ..............find features..........
+        state = self.state
 ##########################################################
         expert_yaw = self.last_joy_vel.linear.x * self.yaw_gain
         expert_pitch = self.last_joy_vel.linear.y * self.pitch_gain
@@ -195,7 +204,7 @@ class Controller:
 
 
         #record current datapoint for learning
-        self.record(feat_array, expert_yaw, expert_pitch) ############## RECORDING FEATURES AND ACTION
+        self.record(feat_array, state, expert_yaw, expert_pitch) ############## RECORDING FEATURES AND ACTION
         #send control message
         ctrl_msg = self.construct_control_msg(pred_yaw, pred_pitch)
         self.send_control_msg(ctrl_msg)
@@ -227,9 +236,9 @@ class Controller:
     #----------------------------------------------------------------------
     #record current feature vector with target yaw and pitch in record topic
     #----------------------------------------------------------------------
-    def record(self, feat_array, pred_yaw, pred_pitch):
+    def record(self, feat_array, state,pred_yaw, pred_pitch):
         if self.do_record:
-            ar = np.append(feat_array, pred_yaw, pred_pitch)
+            ar = np.append(feat_array, state,pred_yaw, pred_pitch)
             self.record_publisher.publish(None, ar)
 
 
