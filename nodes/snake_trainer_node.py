@@ -18,6 +18,26 @@ from cv_bridge import CvBridge
 import cv2
 import pylab as plt
 
+
+class Trainer:
+    def __init__(self):
+        self.load_params()
+
+    def load_params(self):
+        self.dataset_train = rospy.get_param('dataset_train')
+        self.dataset_test = rospy.get_param('dataset_test', default="")
+        self.cv_fold = rospy.get_param('cv_fold', default=2)
+        self.path_bag = rospy.get_param('bag_folder')
+        self.predictor_folder = rospy.get_param('pred_folder')
+        self.outfile_yaw = rospy.get_param('predy_file')  # stores the result of training on the whole dataset
+        self.outfile_pitch = rospy.get_param('predp_file')  # stores the result of training on the whole dataset
+        self.im_record = rospy.get_param('im_record',default='/camera/image_raw')
+        self.feat_record = rospy.get_param('feat_record',default='/feature')
+        self.act_record = rospy.get_param('act_record',default='/cmd_vel')
+        self.yaw_sample_weight_type = rospy.get_param('yaw_sample_weight_type',default="subsample")
+        self.pit_sample_weight_type = rospy.get_param('pit_sample_weight_type',default="None")
+
+
 class Dataset:
     def __init__(self):
         self.X = np.array([])  # r x c matrix of r datapoints, each with c input features
@@ -27,7 +47,7 @@ class Dataset:
         self.c = 0  # number of features
         self.bridge = CvBridge()
 
-    def load(self, ds, path_bag, pub_record):
+    def load(self, ds, path_bag, feat_record):
         rospy.loginfo("[DAgger] Opening dataset %s", ds)
         last_nb = 0
         f = open(ds, 'r')
@@ -48,7 +68,7 @@ class Dataset:
                     rospy.loginfo("[DAgger] Reindexing failed, skipping file %s", path_bag + line2)
                     continue
             # look at msg in dagger_record topic
-            for topic, msg, t in bag.read_messages(topics=[pub_record]):
+            for topic, msg, t in bag.read_messages(topics=[feat_record]):
                 #convert msg.data to a numpy array
                 ar = np.array(msg.data, dtype=np.float32)
                 n = ar.size
@@ -65,7 +85,7 @@ class Dataset:
             bag.close()
         f.close()
 
-    def load2(self, ds, path_bag, pub_record,act_record):
+    def load2(self, ds, path_bag, im_record,act_record):
         rospy.loginfo("[DAgger] Opening dataset %s", ds)
         last_nb = 0
         f = open(ds, 'r')
@@ -86,7 +106,7 @@ class Dataset:
                     rospy.loginfo("[DAgger] Reindexing failed, skipping file %s", path_bag + line2)
                     continue
             # look at msg in dagger_record topic
-            for topic, msg,t in bag.read_messages(topics=[pub_record]):
+            for topic, msg,t in bag.read_messages(topics=[im_record]):
                 #convert msg.data to a numpy array
                 ar = np.array(self.bridge.imgmsg_to_cv2(msg,desired_encoding='passthrough'), dtype=np.uint8)
                 bw_img = cv2.cvtColor(ar, cv2.COLOR_RGB2GRAY)
@@ -108,6 +128,61 @@ class Dataset:
             rospy.loginfo("[DAgger] Loaded %d datapoints from bag file %s", self.r - last_nb, line2)
             last_nb = self.r
 
+            self.c = self.X.shape[1]
+            bag.close()
+        f.close()
+
+    def load3(self, ds, path_bag, feat_record, act_record):
+        rospy.loginfo("[DAgger] Opening dataset %s", ds)
+        last_nb = 0
+        f = open(ds, 'r')
+        # load all bags in f
+        counter = 0
+        for line in f:
+            # open the current bag file
+            line2 = line.rstrip(' \t\n')
+            #rospy.loginfo("[DAgger] Opening bag file %s", path_bag + line2)
+            try:
+                bag = rosbag.Bag(path_bag + line2)
+            except rosbag.bag.ROSBagUnindexedException:
+                rospy.loginfo("[DAgger] Unindexed Bag file %s. Attempting to reindex", path_bag + line2)
+                call(shlex.split("rosbag reindex %s" % (path_bag + line2)))
+                try:
+                    bag = rosbag.Bag(path_bag + line2)
+                    rospy.loginfo("[DAgger] Reindexing Succesful")
+                except rosbag.bag.ROSBagUnindexedException:
+                    rospy.loginfo("[DAgger] Reindexing failed, skipping file %s", path_bag + line2)
+                    continue
+
+            # look at msg in dagger_record topic
+            for topic, msg, t in bag.read_messages(topics=[feat_record]):
+                # publish image to
+                #convert msg.data to a numpy array
+                ar = np.array(msg.data)
+                if self.r == 0:
+                    self.X = ar
+                    feat_time = t.to_sec()
+                    print "feat_time ", feat_time
+                    #rospy("RECEIVED FEAT AT TIME %f", t.to_sec())
+                    #self.X = ar[:,:,:,np.newaxis]
+                else:
+                    self.X = np.vstack((self.X, ar))
+                    feat_time = np.vstack((feat_time, t.to_sec()))
+                    #self.X = np.concatenate((self.X, ar[:,:,:,np.newaxis]),axis=3)
+                self.r += 1
+            for topic, msg, t in bag.read_messages(topics=[act_record]):
+                #rospy.loginfo("msg %s",msg)
+                if abs(t.to_sec() - feat_time[counter]) < 3:
+                    yaw = np.array(msg.linear.x, dtype=np.float32)
+                    pitch = np.array(msg.linear.y, dtype=np.float32)
+                    self.yaw = np.append(self.yaw, yaw)
+                    self.pitch = np.append(self.pitch, pitch)
+                    counter += 1
+                else:
+                    rospy.loginfo("disregarded action at time %f", t.to_sec())
+
+            rospy.loginfo("[DAgger] Loaded %d datapoints from bag file %s", self.r - last_nb, line2)
+            last_nb = self.r
             self.c = self.X.shape[1]
             bag.close()
         f.close()
@@ -192,21 +267,6 @@ def rand_perm(n):
     return p
 
 
-class Trainer:
-    def __init__(self):
-        self.load_params()
-
-    def load_params(self):
-        self.dataset_train = rospy.get_param('dataset_train')
-        self.dataset_test = rospy.get_param('dataset_test')
-        self.cv_fold = rospy.get_param('cv_fold')
-        self.path_bag = rospy.get_param('path_bag')
-        self.outfile_yaw = rospy.get_param('predy_file')  # stores the result of training on the whole dataset
-        self.outfile_pitch = rospy.get_param('predp_file')  # stores the result of training on the whole dataset
-        self.pub_record = rospy.get_param('pub_record',default='/camera/image_raw')
-        self.act_record = rospy.get_param('act_record',default='/cmd_vel')
-        self.feature_weighted = rospy.get_param('feature_weighted')
-        self.sample_weight_type = rospy.get_param('sample_weight_type')
 
 
 def rospyloginfo(ds, err_tol):
@@ -224,7 +284,7 @@ def rospyloginfo(ds, err_tol):
         sum((abs(ds.pitch) - err_tol)[abs(ds.pitch) > err_tol]), err_tol, sum(abs(ds.pitch) >= err_tol))
 
 
-def cross_validate(ds, regs, err_tol, cv_fold, outname, outext, mvt):
+def cross_validate(ds, regs, err_tol, cv_fold, pfolder,outname, outext, mvt):
     best_err1 = np.zeros([2, 1])
     best_err2 = np.zeros([2, 1])
     best_errh = np.zeros([2, 1])
@@ -245,9 +305,10 @@ def cross_validate(ds, regs, err_tol, cv_fold, outname, outext, mvt):
             errh = 0
             errcls = 0
             # for each cross-validation fold
+            num_data =0.0
             for i in range(cv_fold):
-                rospy.loginfo("[DAgger] Testing Reg %f on heldout folds", reg)
-                fname = "%s-%d%s-%f%s" % (outname[l], i, mvt[l], reg, outext[l])
+                #rospy.loginfo("[DAgger] Testing Reg %f on heldout folds", reg)
+                fname = "%s%s-%d%s-%f%s" % (pfolder,outname[l], i, mvt[l], reg, outext[l])
                 lp = predictor.load(fname)
                 idx_test = cv_idx_test(ds.r, learner.cv_fold, i + 1)
 
@@ -261,32 +322,33 @@ def cross_validate(ds, regs, err_tol, cv_fold, outname, outext, mvt):
                     if abs(err) >= err_tol:
                         errh += abs(err) - err_tol
                         errcls += 1
+                    num_data += 1
+            #num_data = float(cv_fold*len(idx_test))
+            rospy.loginfo("[DAgger] Reg %f test Folds MAE: %f -MSE: %f -HE: %f -CE %f", reg, err1 / num_data,
+                          err2/num_data, errh, errcls)
+            if is_first or err1 < best_err1[l]:
+                best_err1[l] = err1
+                best_reg1[l] = reg
+            if is_first or err2 < best_err2[l]:
+                best_err2[l] = err2
+                best_reg2[l] = reg
+            if is_first or errh < best_errh[l]:
+                best_errh[l] = errh
+                best_regh[l] = reg
+            if is_first or errcls < best_errcls[l]:
+                best_errcls[l] = errcls
+                best_regcls[l] = reg
+            is_first = False
 
-            rospy.loginfo("[DAgger] Test Folds Abs. Error: %f Squared Error: %f %f-SVR Loss: %f %f-Cls Error %f", err1,
-                          err2, err_tol, errh, err_tol, errcls)
-        if is_first or err1 < best_err1[l]:
-            best_err1[l] = err1
-            best_reg1[l] = reg
-        if is_first or err2 < best_err2[l]:
-            best_err2[l] = err2
-            best_reg2[l] = reg
-        if is_first or errh < best_errh[l]:
-            best_errh[l] = errh
-            best_regh[l] = reg
-        if is_first or errcls < best_errcls[l]:
-            best_errcls[l] = errcls
-            best_regcls[l] = reg
-        is_first = False
-
-        rospy.loginfo("[DAgger] Best Regularizer Train Abs. error: %f", best_reg1[l])
-        rospy.loginfo("[DAgger] Best regularizer Train Squared error: %f", best_reg2[l])
-        rospy.loginfo("[DAgger] Best Regularizer Train SVR: %f", best_regh[l])
-        rospy.loginfo("[DAgger] Best regularizer Train Cls: %f", best_regcls[l])
+        #rospy.loginfo("[DAgger] Best Regularizer Train Abs. error: %f", best_reg1[l])
+        #rospy.loginfo("[DAgger] Best regularizer Train Squared error: %f", best_reg2[l])
+        #rospy.loginfo("[DAgger] Best Regularizer Train SVR: %f", best_regh[l])
+        #rospy.loginfo("[DAgger] Best regularizer Train Cls: %f", best_regcls[l])
 
     return best_reg1, best_reg2, best_regh, best_regcls
 
 
-def batch_test(ds, regs, err_tol, outname, outext,mvt,plt_flag=0):
+def batch_test(ds, regs, err_tol, pfolder,outname, outext,mvt,plt_flag=0):
     best_err1 = np.zeros([2, 1])
     best_err2 = np.zeros([2, 1])
     best_errh = np.zeros([2, 1])
@@ -297,11 +359,12 @@ def batch_test(ds, regs, err_tol, outname, outext,mvt,plt_flag=0):
     best_regcls = np.zeros([2, 1])
 
     for l in range(2):
+        rospy.loginfo("[DAgger] %s Predictor", mvt[l])
         is_first = True
         for reg in regs:
-            fname = "%s-%f%s" % (outname[l], reg, outext[l])
+            fname = "%s%s-%f%s" % (pfolder,outname[l], reg, outext[l])
             lp = predictor.load(fname)
-            rospy.loginfo("[DAgger] Testing %s Predictor with Regularizer %f", mvt[l], reg)
+            #rospy.loginfo("[DAgger] Testing %s Predictor with Regularizer %f", mvt[l], reg)
             err1 = 0
             err2 = 0
             errh = 0
@@ -334,12 +397,12 @@ def batch_test(ds, regs, err_tol, outname, outext,mvt,plt_flag=0):
                 best_errcls[l] = errcls
                 best_regcls[l] = reg
             is_first = False
-            rospy.loginfo("[DAgger] \n Mean Abs. error: %f \n Mean Squared error: %f \n SVR Error: %f \n cls Error: %f \n",
+            rospy.loginfo("[DAgger] Regularizer %f -MAE: %f -MSE: %f -HE: %f -CE: %f \n", reg,
                       mean_err1, mean_err2, errh, errcls)
 
-            if plt_flag ==1:
+            if plt_flag == 1:
 
-                figname = "%s-%f" % (outname[l], reg)
+                figname = "%s%s-%f" % (pfolder,outname[l], reg)
                 if l == 0:
                     plt.plot(ds.yaw)
                     plt.title("True Yaw versus predicted output")
@@ -355,21 +418,21 @@ def batch_test(ds, regs, err_tol, outname, outext,mvt,plt_flag=0):
 
     return best_reg1, best_reg2, best_regh, best_regcls
 
-def save_bestweights(best_reg1, best_reg2, best_regh, best_regcls,outname,outext,mvt):
+def save_bestweights(best_reg1, best_reg2, best_regh, best_regcls,pfolder,outname,outext,mvt):
 
     for l in range(2):
-        fname = "%s-%f%s" % (outname[l], best_reg1[l], outext[l])
-        fnamecp = "%s-%f-bestl1%s%s" % (outname[l], best_reg1[l], mvt[l], outext[l])
+        fname = "%s%s-%f%s" % (pfolder,outname[l], best_reg1[l], outext[l])
+        fnamecp = "%sbestl1-%s-%f-%s%s" % (pfolder, outname[l], best_reg1[l], mvt[l], outext[l])
         call(shlex.split("cp %s %s" % (fname, fnamecp)))
-        fname = "%s-%f%s" % (outname[l], best_reg2[l], outext[l])
-        fnamecp = "%s-%f-bestl2%s%s" % (outname[l], best_reg2[l], mvt[l], outext[l])
+        fname = "%s%s-%f%s" % (pfolder,outname[l], best_reg2[l], outext[l])
+        fnamecp = "%sbestl2-%s-%f-%s%s" % (pfolder, outname[l], best_reg2[l], mvt[l], outext[l])
         call(shlex.split("cp %s %s" % (fname, fnamecp)))
-        fname = "%s-%f%s" % (outname[l], best_regh[l], outext[l])
-        fnamecp = "%s-%f-bestsvr%s%s" % (outname[l], best_regh[l], mvt[l],outext[l])
-        call(shlex.split("cp %s %s" % (fname, fnamecp)))
-        fname = "%s-%f%s" % (outname[l], best_regcls[l], outext[l])
-        fnamecp = "%s-%f-bestcls%s%s" % (outname[l], best_regcls[l], mvt[l], outext[l])
-        call(shlex.split("cp %s %s" % (fname, fnamecp)))
+        fname = "%s%s-%f%s" % (pfolder,outname[l], best_regh[l], outext[l])
+        fnamecp = "%sbestsvr-%s-%f-%s%s" % (pfolder, outname[l], best_regh[l], mvt[l],outext[l])
+        #call(shlex.split("cp %s %s" % (fname, fnamecp)))
+        fname = "%s%s-%f%s" % (pfolder,outname[l], best_regcls[l], outext[l])
+        fnamecp = "%sbestcls-%s-%f-%s%s" % (pfolder, outname[l], best_regcls[l], mvt[l], outext[l])
+        #call(shlex.split("cp %s %s" % (fname, fnamecp)))
 
 
 if __name__ == '__main__':
@@ -377,18 +440,18 @@ if __name__ == '__main__':
 
     learner = Trainer()
 
-    regs = np.array([0.0, 1.0])
-
+    regs = np.array([0.0, 1.0, 2.0, 5.0, 7.0, 10.0, 20.0])
     ds_test = Dataset()
     ds_train = Dataset()
 
-    err_tol = 0.1  # use to compute support vector regression loss, and ''classification'' loss
+    err_tol = 0.05  # use to compute support vector regression loss, and ''classification'' loss
     feature_weights = np.array([1.0])
 
     outnamey, outexty = os.path.splitext(learner.outfile_yaw)
     outnamep, outextp = os.path.splitext(learner.outfile_pitch)
     outname = [outnamey, outnamep]
     outext = [outexty, outextp]
+    pfolder = learner.predictor_folder
 
 
     mvt = ["yaw","pit"]
@@ -397,63 +460,68 @@ if __name__ == '__main__':
     if learner.dataset_train != "":
         ds_train_orig = Dataset()
 
-        ds_train_orig.load2(learner.dataset_train, learner.path_bag, learner.pub_record,learner.act_record)
+        ds_train_orig.load3(learner.dataset_train, learner.path_bag, learner.feat_record, learner.act_record)
         ds_train_orig.random_permute()
         ds_train = ds_train_orig
 
-
-    if learner.cv_fold <= 1:
-        ######################################### TRAINING ON COMPLETE DATASET ########################################
-        rospy.loginfo("[DAgger] No Cross-Validation: Training on a total of %d datapoints with %d features", ds_train.r,
+        if learner.cv_fold <= 1:
+            ######################################### TRAINING ON COMPLETE DATASET ########################################
+            rospy.loginfo("[DAgger] No Cross-Validation: Training on a total of %d datapoints with %d features", ds_train.r,
                       ds_train.c)
-        rospyloginfo(ds_train, err_tol)
-        rospy.loginfo("Yaw data")
-        predictor.train(ds_train.X, ds_train.yaw, learner.outfile_yaw, regs, feature_weights,
-                        learner.sample_weight_type,1)
-        rospy.loginfo("Pitch data")
-        predictor.train(ds_train.X, ds_train.pitch, learner.outfile_pitch, regs, feature_weights,
-                        learner.sample_weight_type,1)
-        rospy.loginfo("[DAgger] Training complete")
+            rospyloginfo(ds_train, err_tol)
+            rospy.loginfo("Yaw data")
+            predictor.train(ds_train.X, ds_train.yaw, pfolder+learner.outfile_yaw, regs, feature_weights,
+                        learner.yaw_sample_weight_type, 1)
+            rospy.loginfo("Pitch data")
+            predictor.train(ds_train.X, ds_train.pitch, pfolder+learner.outfile_pitch, regs, feature_weights,
+                        learner.pit_sample_weight_type, 1)
+            rospy.loginfo("[DAgger] Training complete")
+
         ########################################## CROSS-VALIDATION ###############################################
-    else:
-        rospy.loginfo("[DAgger] Cross-Validation on %d fold of %d datapoints with %d features", learner.cv_fold,
+        else:
+            rospy.loginfo("[DAgger] Cross-Validation on %d fold of %d datapoints with %d features", learner.cv_fold,
                       ds_train.r,
                       ds_train.c)
-        rospy.loginfo("[DAgger] Training on all %d data", ds_train_orig.r)
-        rospy.loginfo("Yaw data")
-        predictor.train(ds_train.X, ds_train.yaw, learner.outfile_yaw, regs, feature_weights,
-                        learner.sample_weight_type)
-        rospy.loginfo("Pitch data")
-        predictor.train(ds_train.X, ds_train.pitch, learner.outfile_pitch, regs, feature_weights,
-                        learner.sample_weight_type)
-        for i in range(learner.cv_fold):
-            idx_train = cv_idx_train(ds_train.r, learner.cv_fold, i + 1)
-            fnamey = "%s-%d%s%s" % (outname[0], i, mvt[0],outext[0])
-            rospy.loginfo("[DAgger] Training without fold %d", i + 1)
+            rospy.loginfo("[DAgger] Training on all %d data", ds_train_orig.r)
             rospy.loginfo("Yaw data")
-            predictor.train(ds_train.X[idx_train, :], ds_train.yaw[idx_train], fnamey, regs, feature_weights,
-                            learner.sample_weight_type)
-            fnamep = "%s-%d%s%s" % (outname[1], i, mvt[1],outext[1])
+            predictor.train(ds_train.X, ds_train.yaw, pfolder+learner.outfile_yaw, regs, feature_weights,
+                        learner.yaw_sample_weight_type)
             rospy.loginfo("Pitch data")
-            predictor.train(ds_train.X[idx_train, :], ds_train.pitch[idx_train], fnamep, regs, feature_weights,
-                            learner.sample_weight_type)
+            predictor.train(ds_train.X, ds_train.pitch, pfolder+learner.outfile_pitch, regs, feature_weights,
+                        learner.pit_sample_weight_type)
+            for i in range(learner.cv_fold):
+                idx_train = cv_idx_train(ds_train.r, learner.cv_fold, i + 1)
+                fnamey = "%s%s-%d%s%s" % (pfolder,outname[0], i, mvt[0],outext[0])
+                rospy.loginfo("[DAgger] Training without fold %d", i + 1)
+                #rospy.loginfo("Yaw data")
+                predictor.train(ds_train.X[idx_train, :], ds_train.yaw[idx_train], fnamey, regs, feature_weights,
+                            learner.yaw_sample_weight_type)
+                fnamep = "%s%s-%d%s%s" % (pfolder,outname[1], i, mvt[1],outext[1])
+                #rospy.loginfo("Pitch data")
+                predictor.train(ds_train.X[idx_train, :], ds_train.pitch[idx_train], fnamep, regs, feature_weights,
+                            learner.pit_sample_weight_type)
 
 
-        (best_reg1, best_reg2, best_regh, best_regcls) = cross_validate(ds_train, regs, err_tol, learner.cv_fold,
+            (best_reg1, best_reg2, best_regh, best_regcls) = cross_validate(ds_train, regs, err_tol, learner.cv_fold,pfolder,
                                                                         outname, outext, mvt)
+
+            rospy.loginfo("[DAgger] Best Regularizer Valid Abs. error: %f %f", best_reg1[0],best_reg1[1])
+            rospy.loginfo("[DAgger] Best regularizer Valid Squared error: %f %f", best_reg2[0],best_reg2[1])
+            rospy.loginfo("[DAgger] Best regularizer Valid SVR: %f %f", best_regh[0],best_regh[1])
+            rospy.loginfo("[DAgger] Best regularizer Valid Cls: %f %f", best_regcls[0],best_regcls[1])
+
+            save_bestweights(best_reg1, best_reg2, best_regh, best_regcls, pfolder,outname, outext, mvt)
+
+    ####################################### TEST DATASET ###############################################
+    if learner.dataset_test != "":
+        ds_test.load3(learner.dataset_test, learner.path_bag, learner.feat_record,learner.act_record)
+
+        rospy.loginfo("[DAgger] Testing on a total of %d datapoints with %d features. Avg. absolute yaw %f , Avg. absolute pitch %f",
+                      ds_test.r, ds_test.c, abs(ds_test.yaw).mean(), abs(ds_test.pitch).mean())
+        rospyloginfo(ds_test, err_tol)
+        (best_reg1, best_reg2, best_regh, best_regcls) = batch_test(ds_test, regs, err_tol,pfolder,outname, outext,mvt,1)
 
         rospy.loginfo("[DAgger] Best Regularizer Valid Abs. error: %f %f", best_reg1[0],best_reg1[1])
         rospy.loginfo("[DAgger] Best regularizer Valid Squared error: %f %f", best_reg2[0],best_reg2[1])
         rospy.loginfo("[DAgger] Best regularizer Valid SVR: %f %f", best_regh[0],best_regh[1])
         rospy.loginfo("[DAgger] Best regularizer Valid Cls: %f %f", best_regcls[0],best_regcls[1])
-
-        save_bestweights(best_reg1, best_reg2, best_regh, best_regcls,outname,outext,mvt)
-
-    ####################################### TEST DATASET ###############################################
-    if learner.dataset_test != "":
-        ds_test.load2(learner.dataset_test, learner.path_bag, learner.pub_record,learner.act_record)
-
-        rospy.loginfo("[DAgger] Testing on a total of %d datapoints with %d features. Avg. absolute yaw %f , Avg. absolute pitch %f",
-                      ds_test.r, ds_test.c, abs(ds_test.yaw).mean(), abs(ds_test.pitch).mean())
-        rospyloginfo(ds_test, err_tol)
-        (best_reg1, best_reg2, best_regh, best_regcls) = batch_test(ds_test, regs, err_tol,outname, outext,mvt,1)

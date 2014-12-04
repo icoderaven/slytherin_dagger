@@ -24,6 +24,7 @@ class FeatureGenerator:
         self.feat_pub = rospy.Publisher(self.feat_topic, Float32MultiArray, queue_size=1)
         self.bridge = CvBridge()
     def img_update(self, data):
+        rospy.loginfo("received image")
         cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
         bw_img = cv2.cvtColor(cv_image, cv2.COLOR_RGB2GRAY)
         feat = self.findholecentre(bw_img)
@@ -77,8 +78,8 @@ class FeatureGenerator:
         #cv2.imshow('mask after contours', image) 
         #cv2.waitKey(-1)
         M1 = cv2.moments(cnt)#, binaryImage=True)
-        cx1 = int(M1['m10'] / M1['m00'])
-        cy1 = int(M1['m01'] / M1['m00'])
+        cx1 = int(M1['m10'] / (M1['m00'] + np.finfo(float).eps))
+        cy1 = int(M1['m01'] / (M1['m00'] + np.finfo(float).eps))
         centroidimg = [cx1, cy1]#centroid of the mask
 	radius=math.sqrt(M1['m00']/3.14)
 	#tmp2 = original.copy()
@@ -99,8 +100,8 @@ class FeatureGenerator:
         #Finding centroid of dark region in the image
         ########################################
         M2 = cv2.moments(res, binaryImage=True)
-        cx2 = int(M2['m10'] / M2['m00'])
-        cy2 = int(M2['m01'] / M2['m00'])
+        cx2 = int(M2['m10'] / (M2['m00'] + np.finfo(float).eps))
+        cy2 = int(M2['m01'] / (M2['m00'] + np.finfo(float).eps))
         centroid2 = [cx2-cx1, cy2-cy1]
 	arr1 = np.array(centroid2)
 	############################################
@@ -136,40 +137,40 @@ class FeatureGenerator:
 	###########################################        
 	sobelx = cv2.Sobel(res,cv2.CV_64F,1,0,ksize=5)
         M3 = cv2.moments(sobelx[cx1-radius:cx1,cy1-radius:cy1], binaryImage=True)
-        cx3 = int(M3['m10'] / M3['m00'])
-        cy3 = int(M3['m01'] / M3['m00'])
+        cx3 = int(M3['m10'] / (M3['m00'] + np.finfo(float).eps))
+        cy3 = int(M3['m01'] / (M3['m00'] + np.finfo(float).eps))
         centroidxtl = [cx3, cy3]
         M3 = cv2.moments(sobelx[cx1-radius:cx1,cy1:radius+cy1], binaryImage=True)
-        cx3 = int(M3['m10'] / M3['m00'])
-        cy3 = int(M3['m01'] / M3['m00'])
+        cx3 = int(M3['m10'] / (M3['m00'] + np.finfo(float).eps))
+        cy3 = int(M3['m01'] / (M3['m00'] + np.finfo(float).eps ))
         centroidxtr = [cx3, cy3]
         M3 = cv2.moments(sobelx[cx1:cx1+radius,cy1-radius:cy1], binaryImage=True)
-        cx3 = int(M3['m10'] / M3['m00'])
-        cy3 = int(M3['m01'] / M3['m00'])
+        cx3 = int(M3['m10'] / (M3['m00'] + np.finfo(float).eps))
+        cy3 = int(M3['m01'] / (M3['m00'] + np.finfo(float).eps))
         centroidxbl = [cx3, cy3]
         M3 = cv2.moments(sobelx[cx1:radius+cx1,cy1:radius+cy1], binaryImage=True)
-        cx3 = int(M3['m10'] / M3['m00'])
-        cy3 = int(M3['m01'] / M3['m00'])
+        cx3 = int(M3['m10'] / (M3['m00'] + np.finfo(float).eps))
+        cy3 = int(M3['m01'] / (M3['m00']+ np.finfo(float).eps))
         centroidxbr = [cx3, cy3]
 	##cv2.imshow('gradient image x',sobelx[cx1-radius:cx1,cy1-radius:cy1])
         ##cv2.waitKey(-1)
 	##########################################
         sobely = cv2.Sobel(res,cv2.CV_64F,0,1,ksize=5)
         M3 = cv2.moments(sobely[cx1-radius:cx1,cy1-radius:cy1], binaryImage=True)
-        cx3 = int(M3['m10'] / M3['m00'])
-        cy3 = int(M3['m01'] / M3['m00'])
+        cx3 = int(M3['m10'] / (M3['m00'] + np.finfo(float).eps))
+        cy3 = int(M3['m01'] / (M3['m00'] +np.finfo(float).eps))
         centroidytl = [cx3, cy3]
         M3 = cv2.moments(sobelx[cx1-radius:cx1,cy1:radius+cy1], binaryImage=True)
-        cx3 = int(M3['m10'] / M3['m00'])
-        cy3 = int(M3['m01'] / M3['m00'])
+        cx3 = int(M3['m10'] / (M3['m00'] + np.finfo(float).eps))
+        cy3 = int(M3['m01'] / (M3['m00'] + np.finfo(float).eps))
         centroidytr = [cx3, cy3]
         M3 = cv2.moments(sobelx[cx1:cx1+radius,cy1-radius:cy1], binaryImage=True)
-        cx3 = int(M3['m10'] / M3['m00'])
-        cy3 = int(M3['m01'] / M3['m00'])
+        cx3 = int(M3['m10'] / (M3['m00'] + np.finfo(float).eps))
+        cy3 = int(M3['m01'] / (M3['m00'] + np.finfo(float).eps))
         centroidybl = [cx3, cy3]
         M3 = cv2.moments(sobelx[cx1:radius+cx1,cy1:radius+cy1], binaryImage=True)
-        cx3 = int(M3['m10'] / M3['m00'])
-        cy3 = int(M3['m01'] / M3['m00'])
+        cx3 = int(M3['m10'] / (M3['m00'] + np.finfo(float).eps))
+        cy3 = int(M3['m01'] / (M3['m00'] + np.finfo(float).eps))
         centroidybr = [cx3, cy3]
 	countx = cv2.countNonZero(sobelx)
         county = cv2.countNonZero(sobely)

@@ -44,7 +44,7 @@ def load(filename):
     return pred
 
 
-def train(X, y, filename, options, feature_weight=np.array([1.0]), sample_weight_type="None",print_flag=0):
+def train(X, y, filename, options, feature_weight=np.array([1.0]), sample_weight_type="None", print_flag=0):
     mean_x = X.mean(0)
     std_x = X.std(0)
     mean_y = y.mean(0)
@@ -103,21 +103,26 @@ def train(X, y, filename, options, feature_weight=np.array([1.0]), sample_weight
     A[3,:] = mean_y
 
     for i in range(options.size):
-        print "[DAgger] Training with Regularizer %f" % (options[i])
+        #print "[DAgger] Training with Regularizer %f" % (options[i])
 
         reg = math.sqrt(r) * options[i]
         outname, outext = os.path.splitext(filename)
         fname = "%s-%f%s" % (outname, options[i], outext)
-        ridge = linear_model.Ridge(alpha=reg, fit_intercept=False)
+        reg_algo = linear_model.Ridge(alpha=reg, fit_intercept=False)
+        #reg_algo = linear_model.Lasso(alpha=reg/math.sqrt(r), fit_intercept=False)
         if sample_weight_type == "None":
-            ridge.fit(X,y)
-            w = ridge.coef_
+            reg_algo.fit(X,y)
+            w = reg_algo.coef_
         elif sample_weight_type == "subsample":
-            ridge.fit(X_sub,y_sub)
-            w = ridge.coef_
+            reg_algo.fit(X_sub,y_sub)
+            w = reg_algo.coef_
         if print_flag ==1:
-            print "[DAgger] learned weights: ",w
+            print "[DAgger] learned weights for reg ", options[i], ": "
+            print w
         A[0, :] = w
         np.save(fname, A)
+
+
+
 
 
