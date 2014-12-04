@@ -102,7 +102,7 @@ while over==0 && length(state)<=66
     [yaw,pitch,state] = get_expert_cmd(state,yaw,pitch,maxrange,inc,val);
     
     if val==32
-        if flag==1
+        %if flag==1
             count=count+1;
             log_data{count}=[filled_voxels,pitch,yaw];
             
@@ -116,7 +116,7 @@ while over==0 && length(state)<=66
             ctrl_msg = rosmatlab.message('geometry_msgs/Twist', feat_action_node);
             ctrl_msg = construct_ctrl_msg(ctrl_msg,yaw,pitch);
             key_pub.publish(ctrl_msg);
-        end
+        %end
         pause(0.1)
         %%%%% this part is done when subscriber receives control;
         pitch=0;yaw=0;

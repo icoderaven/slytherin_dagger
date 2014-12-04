@@ -3,8 +3,8 @@ r=d/2;
 
 ind=find(voxels(1,:)<point(1)+r & voxels(1,:)>point(1)-r & voxels(2,:)<point(2)+r & voxels(2,:)>point(2)-r & voxels(3,:)<point(3)+r & voxels(3,:)>point(3)-r);
 if isempty(ind)
-%     flag=0;
-flag=1;
+    flag=0;
+% flag=1;
     mat=0;
     filledvoxels=0;
     voxelsinbox = 0;
