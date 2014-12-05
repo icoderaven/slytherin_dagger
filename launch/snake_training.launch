@@ -1,16 +1,16 @@
 <launch>
     <node name="snake_trainer_node" pkg="slytherin_dagger" type="snake_trainer_node.py" output="screen" >
-    <param name="bag_folder" type="string" value="/home/icoderaven/BagFiles/" />
+    <param name="bag_folder" type="string" value="/home/icoderaven/bagfiles/" />
     <param name="pred_folder" type="string" value="/home/icoderaven/predictors/" />
-    <param name="dataset_train" type="string" value="/home/icoderaven/training_bagfiles.txt" />
-    <param name="dataset_test" type="string" value="/home/icoderaven/testing_bagfiles.txt" />
-	<param name="predy_file" type="string" value="bestl1-it0_yawpredictor-20.000000-yaw.npy" />
-	<param name="predp_file" type="string" value="bestl1-it0_pitpredictor-1.000000-pit.npy" />
+    <param name="dataset_train" type="string" value="/home/icoderaven/bagfiles/training_bagfiles.txt" />
+    <param name="dataset_test" type="string" value="/home/icoderaven/bagfiles/testing_bagfiles.txt" />
+	<param name="predy_file" type="string" value="it1_yawpredictor.npy" />
+	<param name="predp_file" type="string" value="it1_pitpredictor.npy" />
 	<param name="im_record" type="string" value="/camera/image_raw" />
 	<param name="act_record" type="string" value="/cmd_vel" />
-	<param name="feat_record" type="string" value="/feature" />
+	<param name="feat_record" type="string" value="/record" />
 	<param name="cv_fold" type="int" value="2" />
-	<param name="yaw_sample_weight_type" type="string" value="subsample" />
+	<param name="yaw_sample_weight_type" type="string" value="None" />
 	<param name="pit_sample_weight_type" type="string" value="None" />
 </node>
 </launch>
