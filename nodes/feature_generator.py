@@ -72,6 +72,9 @@ def findholecentre(original):
             continue
         cnt=c				
         break
+    if cnt is None:
+        rospy.logwarn('[Feature Detector] WARNING: No contour detected!!! Returning 0s!!!')
+	return np.zeros((16,1))
     boundingbox= cv2.boundingRect(cnt)
     centreBoundingBox=[boundingbox[0]+boundingbox[2]/2,boundingbox[1]+boundingbox[3]/2]
     #boxsize=boundingbox[2]
