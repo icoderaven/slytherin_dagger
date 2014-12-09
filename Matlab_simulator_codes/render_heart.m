@@ -1,0 +1,9 @@
+fv = stlread('heart.STL');
+patch(fv,'FaceColor',       [1 0 0], ...
+         'EdgeColor',       'none',        ...
+         'FaceLighting',    'gouraud',     ...
+         'AmbientStrength', 0.15);
+
+% Add a camera light, and tone down the specular highlighting
+camlight('headlight');
+material('dull');

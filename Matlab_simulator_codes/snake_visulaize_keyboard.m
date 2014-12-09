@@ -18,7 +18,7 @@ linkStartDraw=0;
 %Voxelise the STL:
 R=[1 0 0; 0 0 -1 ; 0  1 0];
 
-[OUTPUTgrid] = VOXELISE(20,20,20,'heart.STL','xyz');
+[OUTPUTgrid] = VOXELISE(30,30,30,'heart.STL','xyz');
 [x,y,z]=ind2sub(size(OUTPUTgrid), find(OUTPUTgrid));
 voxels=R*[x';y';z'];
 x=voxels(1,:)+10;
@@ -28,13 +28,14 @@ figure('units','normalized','outerposition',[0 0 1 1])
 axis([0 150 -50 50 -50 50]);
 grid on
 hold on
-subplot(1,2,1)
+% % subplot(1,2,1)
 
 scatter3(x,y,z,'red','s');
 hold on
 scatter3(P3(1),P3(2),P3(3),150,'green','fill')
 
-[h, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+[h, snakePoints,normal_vec,anchor_pt] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+% plot_linkNormals(anchor_pt,normal_vec)
 subplot(1,2,2)
 scatter3(x,y,z);
 [h, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
@@ -49,6 +50,8 @@ maxrange=10*pi/180;
 boxsize=20;
 steps=10;
 count=0;
+figure('units','normalized','outerposition',[0 0 1 1])
+plot_state = [state(end-1),state(end)];
 while over==0 && length(state)<66
     
     %read from keyboard
@@ -85,6 +88,8 @@ while over==0 && length(state)<66
         state(end-1)=phi;
         state(end)=theta;
         state=adderror(state,0);
+        
+        plot_state = [state(end-1),state(end)];
     end
     if val==32
         if flag==1
@@ -108,47 +113,50 @@ while over==0 && length(state)<66
     scatter3(x,y,z,'red','fill','s');
     hold on
     scatter3(P3(1),P3(2),P3(3),150,'green','fill')
-    [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+    [~, snakePoints,normal_vec,anchor_pt] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
     P1 = snakePoints(end,:);
     P2 = snakePoints(end,:)+100*(snakePoints(end,:)-snakePoints(end-1,:))/norm((snakePoints(end,:)-snakePoints(end-1,:)));
     pts = [P1; P2];
     line(pts(:,1), pts(:,2), pts(:,3))
-    axis([0 150 -50 50 -50 50]);
+    axis([0 100 -20 50 -50 50]);
+    plot_linkNormals(anchor_pt,normal_vec)
     view(3)
     
     subplot(2,2,2)
     scatter3(x,y,z,'red','fill','s');
     hold on
     scatter3(P3(1),P3(2),P3(3),150,'green','fill')
-    [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+    [~, snakePoints,normal_vec,anchor_pt] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
     line(pts(:,1), pts(:,2), pts(:,3))
-    axis([0 150 -50 50 -50 50]);
-    %view([90+state(end-1)*180/pi state(end)*180/pi])
+    axis([0 100 -50 50 -50 50]);
+    plot_linkNormals(anchor_pt,normal_vec)
     view([0,0])
+    view([(plot_state(end) - plot_state(end-1))*180/pi plot_state(end)*180/pi])
+    
     
     
     subplot(2,2,3)
     scatter3(x,y,z,'red','fill','s');
     hold on
     scatter3(P3(1),P3(2),P3(3),150,'green','fill')
-    [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+    [~, snakePoints,normal_vec,anchor_pt] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
     line(pts(:,1), pts(:,2), pts(:,3))
-    axis([0 150 -50 50 -50 50]);
-    %view([90+state(end-1)*180/pi state(end)*180/pi])
-    view([90,0])
-    
-    
+    axis([0 100 -50 50 -50 50]);
+    plot_linkNormals(anchor_pt,normal_vec)
+    %     view([90,0])
+    view([plot_state(end-1)*180/pi 90+plot_state(end)*180/pi])
     
     subplot(2,2,4)
     scatter3(x,y,z,'red','fill','s');
     hold on
     scatter3(P3(1),P3(2),P3(3),150,'green','fill')
-    [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+    [~, snakePoints,normal_vec,anchor_pt] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
     line(pts(:,1), pts(:,2), pts(:,3))
-    axis([0 150 -50 50 -50 50]);
+    axis([0 100 -50 50 -50 50]);
     %view([90+state(end-1)*180/pi state(end)*180/pi])
-    view([0,90])
-    
+    plot_linkNormals(anchor_pt,normal_vec)
+    %     view([0,90])
+    view([90+plot_state(end-1)*180/pi plot_state(end)*180/pi])
     
     hold off
     

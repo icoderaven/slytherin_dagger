@@ -204,7 +204,7 @@ class Controller:
 
 
         #record current datapoint for learning
-        self.record(feat_array, state, expert_yaw, expert_pitch) ############## RECORDING FEATURES AND ACTION
+        self.record(feat_array, expert_yaw, expert_pitch) ############## RECORDING FEATURES AND ACTION
         #send control message
         ctrl_msg = self.construct_control_msg(pred_yaw, pred_pitch)
         self.send_control_msg(ctrl_msg)
@@ -236,9 +236,9 @@ class Controller:
     #----------------------------------------------------------------------
     #record current feature vector with target yaw and pitch in record topic
     #----------------------------------------------------------------------
-    def record(self, feat_array, state,pred_yaw, pred_pitch):
+    def record(self, feat_array, pred_yaw, pred_pitch):
         if self.do_record:
-            ar = np.append(feat_array, state,pred_yaw, pred_pitch)
+            ar = np.append(feat_array,np.array([pred_yaw]), np.array([pred_pitch]))
             self.record_publisher.publish(None, ar)
 
 

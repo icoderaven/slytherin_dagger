@@ -1,4 +1,5 @@
-function [h, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw)
+function [feat_array, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,voxels,step,maxdist)
+%modified the draw state function to compute the normals to all snake links
 % function [h, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw)
 
 % extract information for the transformation matrix
@@ -12,17 +13,11 @@ T(2,1:3) = [cos(ry)*sin(rz), cos(rx)*cos(rz)+sin(rx)*sin(ry)*sin(rz), -sin(rx)*c
 T(3,1:3) = [-sin(ry), sin(rx)*cos(ry), cos(rx)*cos(ry)];
 
 % draw the first link
-h = [];
+
 snakePoints = [];
-drawLinkPoints = [];
 if (linkStartDraw == 0)
     point1 = Tregister*T*[-LINK_LENGTH; 0; 0; 1];   
     point2 = Tregister*T*[0; 0; 0; 1];
-    if (drawType == 0)
-        drawLinkPoints = [point1 point2];
-    else
-        h = [h, drawLink(Tregister*T, LINK_LENGTH, LINK_RADIUS, drawColor, drawType)];
-    end
     for u = 0:0.1:1.0,
         snakePoints = [snakePoints, [(1-u).*point1 + u.*point2]];
     end
@@ -60,21 +55,32 @@ for j = 1:numAdditionalSegments,
     if (j >= linkStartDraw)
         point1 = Tregister*T*[-LINK_LENGTH; 0; 0; 1];   
         point2 = Tregister*T*[0; 0; 0; 1];
-        %[normal_vec{j},anchor_pt{j},skip_index] = computeLinkNormals(T, LINK_LENGTH, LINK_RADIUS);
-        if (drawType == 0)
-            drawLinkPoints = [drawLinkPoints point2];
-        else
-            h = [h, drawLink(Tregister*T, LINK_LENGTH, LINK_RADIUS, drawColor, drawType)];
-        end
+        [normal_vec{j},anchor_pt{j},~] = computeLinkNormals(T, LINK_LENGTH, LINK_RADIUS);
         for u = 0:0.1:1.0,
             snakePoints = [snakePoints, [(1-u).*point1 + u.*point2]];
         end
     end
 end
+
 snakePoints = snakePoints(1:3,:)';
 
-if (drawType == 0)
-    h = plot3(drawLinkPoints(1,:), drawLinkPoints(2,:), drawLinkPoints(3,:),'.');
-    h = [h, plot3(drawLinkPoints(1,:), drawLinkPoints(2,:), drawLinkPoints(3,:))];
-    set(h,'Color',drawColor);    
+head_pt = snakePoints(end,:);
+head_vec = (snakePoints(end,:)-snakePoints(end-1,:))/norm((snakePoints(end,:)-snakePoints(end-1,:)));
+
+num_links = length(anchor_pt);
+num_facades = size(anchor_pt{1},1);
+feat_array = zeros([num_links*num_facades + 1,1]);
+counter = 1;
+
+for i=1:num_links
+for j=1:num_facades
+feat_array(counter) = distance2obstacle(anchor_pt{i}(j,:),normal_vec{i}(j,:),voxels,step,maxdist); 
+% normal_vec{i}(j,:) = normal_vec{i}(j,:)*feat_array(counter);
+counter = counter+1;
+end
+end
+
+feat_array(end) = distance2obstacle(head_pt,head_vec,voxels,step,maxdist);
+head_vec = head_vec*feat_array(end);
+
 end
