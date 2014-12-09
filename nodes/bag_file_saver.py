@@ -58,11 +58,11 @@ class BagSaver:
             cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='passthrough')
             #Convert from yuv2 to rgb
             new_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
-	    new_msg = self.bridge.cv2_to_imgmsg(new_image, encoding='bgr8')
-	    if self.last_img_msg is None and (rospy.Time.now() - self.last_time).to_sec() > 4:
-            	self.last_img_msg = new_msg
-	    
-            self.publisher.publish(new_msg)
+            new_msg = self.bridge.cv2_to_imgmsg(new_image, encoding='bgr8')
+            if self.last_img_msg is None and (rospy.Time.now() - self.last_time).to_sec() > 4:
+                self.last_img_msg = new_msg
+            if self.last_img_msg is not None:
+                self.publisher.publish(self.last_img_msg)
         else:
             self.last_img_msg = data
     

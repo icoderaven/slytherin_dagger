@@ -11,9 +11,9 @@ import os
 from subprocess import call
 import shlex
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-import src.linear_predictor as predictor
-import src.visual_features as feature
+sys.path.append(roslib.packages.get_pkg_dir('slytherin_dagger')+'/src')
+import linear_predictor as predictor
+import feature_generator as feature
 from cv_bridge import CvBridge
 import cv2
 import pylab as plt
@@ -24,18 +24,18 @@ class Trainer:
         self.load_params()
 
     def load_params(self):
-        self.dataset_train = rospy.get_param('dataset_train')
-        self.dataset_test = rospy.get_param('dataset_test', default="")
-        self.cv_fold = rospy.get_param('cv_fold', default=2)
-        self.path_bag = rospy.get_param('bag_folder')
-        self.predictor_folder = rospy.get_param('pred_folder')
-        self.outfile_yaw = rospy.get_param('predy_file')  # stores the result of training on the whole dataset
-        self.outfile_pitch = rospy.get_param('predp_file')  # stores the result of training on the whole dataset
-        self.im_record = rospy.get_param('im_record',default='/camera/image_raw')
-        self.feat_record = rospy.get_param('feat_record',default='/feature')
-        self.act_record = rospy.get_param('act_record',default='/cmd_vel')
-        self.yaw_sample_weight_type = rospy.get_param('yaw_sample_weight_type',default="subsample")
-        self.pit_sample_weight_type = rospy.get_param('pit_sample_weight_type',default="None")
+        self.dataset_train = rospy.get_param('~dataset_train')
+        self.dataset_test = rospy.get_param('~dataset_test', default="")
+        self.cv_fold = rospy.get_param('~cv_fold', default=2)
+        self.path_bag = rospy.get_param('~bag_folder')
+        self.predictor_folder = rospy.get_param('~pred_folder')
+        self.outfile_yaw = rospy.get_param('~predy_file')  # stores the result of training on the whole dataset
+        self.outfile_pitch = rospy.get_param('~predp_file')  # stores the result of training on the whole dataset
+        self.im_record = rospy.get_param('~im_record',default='/camera/image_raw')
+        self.feat_record = rospy.get_param('~feat_record',default='/record')
+        self.act_record = rospy.get_param('~act_record',default='/cmd_vel')
+        self.yaw_sample_weight_type = rospy.get_param('~yaw_sample_weight_type',default="subsample")
+        self.pit_sample_weight_type = rospy.get_param('~pit_sample_weight_type',default="None")
 
 
 class Dataset:
@@ -160,26 +160,31 @@ class Dataset:
                 #convert msg.data to a numpy array
                 ar = np.array(msg.data)
                 if self.r == 0:
-                    self.X = ar
+                    #The first 16 elements are features, the next 4 are expert_yaw, expert_pitch, pred_yaw, pred_pitch
+                    self.X = ar[0:16]
                     feat_time = t.to_sec()
                     print "feat_time ", feat_time
                     #rospy("RECEIVED FEAT AT TIME %f", t.to_sec())
                     #self.X = ar[:,:,:,np.newaxis]
                 else:
-                    self.X = np.vstack((self.X, ar))
+                    self.X = np.vstack((self.X, ar[0:16]))
                     feat_time = np.vstack((feat_time, t.to_sec()))
                     #self.X = np.concatenate((self.X, ar[:,:,:,np.newaxis]),axis=3)
+                yaw = ar[18]
+                pitch = ar[19]
+                self.yaw = np.append(self.yaw, yaw)
+                self.pitch = np.append(self.pitch, pitch)
                 self.r += 1
-            for topic, msg, t in bag.read_messages(topics=[act_record]):
+            #for topic, msg, t in bag.read_messages(topics=[act_record]):
                 #rospy.loginfo("msg %s",msg)
-                if abs(t.to_sec() - feat_time[counter]) < 3:
-                    yaw = np.array(msg.linear.x, dtype=np.float32)
-                    pitch = np.array(msg.linear.y, dtype=np.float32)
-                    self.yaw = np.append(self.yaw, yaw)
-                    self.pitch = np.append(self.pitch, pitch)
-                    counter += 1
-                else:
-                    rospy.loginfo("disregarded action at time %f", t.to_sec())
+            #    if abs(t.to_sec() - feat_time[counter]) < 3:
+            #        yaw = np.array(msg.linear.x, dtype=np.float32)
+            #        pitch = np.array(msg.linear.y, dtype=np.float32)
+            #        self.yaw = np.append(self.yaw, yaw)
+            #        self.pitch = np.append(self.pitch, pitch)
+            #        counter += 1
+            #    else:
+            #        rospy.loginfo("disregarded action at time %f", t.to_sec())
 
             rospy.loginfo("[DAgger] Loaded %d datapoints from bag file %s", self.r - last_nb, line2)
             last_nb = self.r

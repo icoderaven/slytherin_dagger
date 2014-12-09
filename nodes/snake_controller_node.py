@@ -15,7 +15,7 @@ import os.path
 import pdb
 sys.path.append(roslib.packages.get_pkg_dir('slytherin_dagger')+'/src')
 from linear_predictor import LinearPredictor
-import visual_features as feature
+import feature_generator
 from std_msgs.msg import Empty
 from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import Image
@@ -146,7 +146,7 @@ class Controller:
             rospy.loginfo('[DAgger] Haven\'t received image or joy data')
             return 
 ################################### construct feature array
-        feat_array = feature.findholecentre(self.last_vis_feat)
+        feat_array = feature_generator.findholecentre(self.last_vis_feat)
 ##########################################################
         expert_yaw = self.last_joy_vel.linear.x * self.yaw_gain
         expert_pitch = self.last_joy_vel.linear.y * self.pitch_gain
