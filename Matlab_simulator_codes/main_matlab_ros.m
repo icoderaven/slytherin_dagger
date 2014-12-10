@@ -28,18 +28,19 @@ goal_pt=[40,0,0];
 % Initialize snake variables
 pitch0=0;
 yaw0=0;
-drawColor=[0.2 length(state)/66 0.3 ];
-LINK_LENGTH=4;
-LINK_RADIUS=1.5;
-drawType=1;
-Tregister=eye(4);
-linkStartDraw=0;
 [phi0,theta0]=pithyawtoaxisangle(pitch0,yaw0);
 % global_state is where the snake actually advances.
 global global_state;
 global_state = [0,0,0,0,0,0,phi0,theta0];
 % state is used for plotting the figures
 state = global_state;
+drawColor=[0.2 length(state)/66 0.3 ];
+LINK_LENGTH=15;
+LINK_RADIUS=15;
+drawType=1;
+Tregister=eye(4);
+linkStartDraw=0;
+
 
 % initialize heart variables
 heart_coord0 = [10,0,0];
@@ -55,7 +56,7 @@ fv.vertices=[x',y',z'];
 obstacles = [goal_pt(1) x;goal_pt(2) y;goal_pt(3) z];
 % plot initial setup
 figure('units','normalized','outerposition',[0 0 1 1])
-axis([0 150 -50 50 -50 50]);
+axis([0 1500 -500 500 -500 500]);
 grid on
 hold on
 patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
