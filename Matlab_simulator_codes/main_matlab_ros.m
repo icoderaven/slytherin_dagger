@@ -48,7 +48,7 @@ R=[1 0 0; 0 0 -1 ; 0  1 0];
 scale=1;%everything is defined in cm but stl files are in mm. Hence this scaling.
 
 offset_heart=[10,0,0];
-[ vox_obs,fv] = findFilledVoxelsAndRender('heart.STL',R,scale,offset_heart );
+[ vox_h,fv] = findFilledVoxelsAndRender('heart.STL',R,scale,offset_heart );
 
 offset_obstacle1=[0,30,30];
 [ vox_obs1,fv1] = findFilledVoxelsAndRender('obstacle.STL',R,scale,offset_obstacle1 );
