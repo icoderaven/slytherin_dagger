@@ -24,18 +24,18 @@ class Trainer:
         self.load_params()
 
     def load_params(self):
-        self.dataset_train = rospy.get_param('~dataset_train')
-        self.dataset_test = rospy.get_param('~dataset_test', default="")
-        self.cv_fold = rospy.get_param('~cv_fold', default=2)
-        self.path_bag = rospy.get_param('~bag_folder')
-        self.predictor_folder = rospy.get_param('~pred_folder')
-        self.outfile_yaw = rospy.get_param('~predy_file')  # stores the result of training on the whole dataset
-        self.outfile_pitch = rospy.get_param('~predp_file')  # stores the result of training on the whole dataset
-        self.im_record = rospy.get_param('~im_record',default='/camera/image_raw')
-        self.feat_record = rospy.get_param('~feat_record',default='/record')
-        self.act_record = rospy.get_param('~act_record',default='/cmd_vel')
-        self.yaw_sample_weight_type = rospy.get_param('~yaw_sample_weight_type',default="subsample")
-        self.pit_sample_weight_type = rospy.get_param('~pit_sample_weight_type',default="None")
+        self.dataset_train = rospy.get_param('dataset_train')
+        self.dataset_test = rospy.get_param('dataset_test', default="")
+        self.cv_fold = rospy.get_param('cv_fold', default=2)
+        self.path_bag = rospy.get_param('bag_folder')
+        self.predictor_folder = rospy.get_param('pred_folder')
+        self.outfile_yaw = rospy.get_param('predy_file')  # stores the result of training on the whole dataset
+        self.outfile_pitch = rospy.get_param('predp_file')  # stores the result of training on the whole dataset
+        self.im_record = rospy.get_param('im_record',default='/camera/image_raw')
+        self.feat_record = rospy.get_param('feat_record',default='/record')
+        self.act_record = rospy.get_param('act_record',default='/cmd_vel')
+        self.yaw_sample_weight_type = rospy.get_param('yaw_sample_weight_type',default="subsample")
+        self.pit_sample_weight_type = rospy.get_param('pit_sample_weight_type',default="None")
 
 
 class Dataset:
