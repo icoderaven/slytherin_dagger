@@ -192,6 +192,52 @@ class Dataset:
             bag.close()
         f.close()
 
+    def load_matlab(self, ds, path_bag, feat_record):
+        rospy.loginfo("[DAgger] Opening dataset %s", ds)
+        last_nb = 0
+        f = open(ds, 'r')
+        # load all bags in f
+        for line in f:
+            # open the current bag file
+            line2 = line.rstrip(' \t\n')
+            #rospy.loginfo("[DAgger] Opening bag file %s", path_bag + line2)
+            try:
+                bag = rosbag.Bag(path_bag + line2)
+            except rosbag.bag.ROSBagUnindexedException:
+                rospy.loginfo("[DAgger] Unindexed Bag file %s. Attempting to reindex", path_bag + line2)
+                call(shlex.split("rosbag reindex %s" % (path_bag + line2)))
+                try:
+                    bag = rosbag.Bag(path_bag + line2)
+                    rospy.loginfo("[DAgger] Reindexing Succesful")
+                except rosbag.bag.ROSBagUnindexedException:
+                    rospy.loginfo("[DAgger] Reindexing failed, skipping file %s", path_bag + line2)
+                    continue
+
+            # look at msg in dagger_record topic
+            for topic, msg, t in bag.read_messages(topics=[feat_record]):
+                # publish image to
+                #convert msg.data to a numpy array
+                ar = np.array(msg.data)
+                if self.r == 0:
+                    #The first 18 elements are features, the next 4 are expert_yaw, expert_pitch, pred_yaw, pred_pitch
+                    self.X = ar[0:17]
+                    feat_time = t.to_sec()
+                    print "feat_time ", feat_time
+                else:
+                    self.X = np.vstack((self.X, ar[0:17]))
+                    feat_time = np.vstack((feat_time, t.to_sec()))
+                yaw = ar[18]
+                pitch = ar[19]
+                self.yaw = np.append(self.yaw, yaw)
+                self.pitch = np.append(self.pitch, pitch)
+                self.r += 1
+
+            rospy.loginfo("[DAgger] Loaded %d datapoints from bag file %s", self.r - last_nb, line2)
+            last_nb = self.r
+            self.c = self.X.shape[1]
+            bag.close()
+        f.close()
+
     def random_permute(self):
         p = range(0, self.r)
         for i in range(0, self.r):
