@@ -99,7 +99,7 @@ while over==0 && length(state)<66
         % COMPUTE All FEATURES of global_state
         maxdist = 30;
         step=1;
-        [feat_array, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(global_state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt);
+        [feat_array, ~,anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(global_state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt);
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Communication with ROS
         % 1) Publish the features
