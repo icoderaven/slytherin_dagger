@@ -43,6 +43,13 @@ view([90+state(end-1) state(end)])
 hold off
 over=0;
 %%
+spx=snakePoints(:,1);spy=snakePoints(:,2);spz=snakePoints(:,3);
+%scatter3([spx;spx(1)+LINK_RADIUS;spx(1)-LINK_RADIUS;spx(1);spx(1)],[spy;spy(1);spy(1)-LINK_RADIUS;spy(1)+LINK_RADIUS;spy(1)],[spz;spz(1);spz(1);spz(1);spz(1)]);
+xadd=[spx(1);spx(1);spx(1);spx(1);spx(2);spx(2);spx(2);spx(2)];
+yadd=[spy(1)+LINK_RADIUS;spy(1)-LINK_RADIUS;spy(1);spy(1);spy(2)+LINK_RADIUS;spy(2)-LINK_RADIUS;spy(2);spy(2)];
+zadd=[spz(1);spz(1);spz(1)-LINK_RADIUS;spz(1)+LINK_RADIUS;spz(1);spz(2);spz(2)-LINK_RADIUS;spz(2)+LINK_RADIUS];
+
+%%
 pitch=0;
 yaw=0;
 inc=1*pi/180;
@@ -114,6 +121,10 @@ while over==0 && length(state)<66
     hold on
     scatter3(P3(1),P3(2),P3(3),150,'green','fill')
     [~, snakePoints,normal_vec,anchor_pt] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+    %[~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+    [rotmat,cornerpoints,volume,surface,edgelength] = minboundbox([snakePoints(:,1);xadd],[snakePoints(:,2);yadd],[snakePoints(:,3);zadd]);
+    plotminbox(cornerpoints,'red')
+
     P1 = snakePoints(end,:);
     P2 = snakePoints(end,:)+100*(snakePoints(end,:)-snakePoints(end-1,:))/norm((snakePoints(end,:)-snakePoints(end-1,:)));
     pts = [P1; P2];
