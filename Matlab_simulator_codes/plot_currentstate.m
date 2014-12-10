@@ -16,7 +16,7 @@ hold on
 
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-axis([0 150 -50 50 -50 50]);
+axis([0 1500 -500 500 -500 500]);
 plot_dirlines(anchor_pt,normal_vec,tmpfeat)
 plot_dirlines({head_pt},{head_vec},tmpfeat)
 title('0,0')
@@ -33,7 +33,7 @@ hold on
 
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-axis([0 150 -50 50 -50 50]);
+axis([0 1500 -500 500 -500 500]);
 %     view([90+state(end-1)*180/pi state(end)*180/pi])
 title('-180,0')
 plot_dirlines(anchor_pt,normal_vec,tmpfeat)
@@ -52,7 +52,7 @@ hold on
 
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-axis([-10 50 -50 50 -50 50]);
+axis([-100 500 -500 500 -500 500]);
 %     view([90+state(end-1)*180/pi state(end)*180/pi])
 plot_dirlines(anchor_pt,normal_vec,tmpfeat)
 plot_dirlines({head_pt},{head_vec},tmpfeat)
@@ -71,7 +71,7 @@ hold on
 
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-axis([0 150 -50 50 -50 50]);
+axis([0 1500 -500 500 -500 500]);
 %view([90+state(end-1)*180/pi state(end)*180/pi])
 plot_dirlines(anchor_pt,normal_vec,tmpfeat)
 plot_dirlines({head_pt},{head_vec},tmpfeat)
