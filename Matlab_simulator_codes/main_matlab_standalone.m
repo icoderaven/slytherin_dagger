@@ -43,32 +43,35 @@ axis([0 500 -200 200 -200 200]);
 grid on
 hold on
 %scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'fill','k')
-[OUTPUTgrid] = VOXELISE(20,20,20,'heart.STL');
+[OUTPUTgrid] = VOXELISE(30,30,30,'heart.STL');
 [x,y,z]=ind2sub(size(OUTPUTgrid), find(OUTPUTgrid));
-voxels=R*[x';y';z'];
-x=voxels(1,:)*4+60;
-y=voxels(2,:)*3+40;
-z=voxels(3,:)*6-20;
+% voxels=R*[x';y';z'];
+% x=voxels(1,:)*4+60;
+% y=voxels(2,:)*3+40;
+% z=voxels(3,:)*6-20;
+[x,y,z] = scale_shift(voxels,fv);
 vox_h=[x',y',z'];
 
 
-[OUTPUTgrid] = VOXELISE(20,20,20,'obstacle.STL');
+[OUTPUTgrid] = VOXELISE(30,30,30,'obstacle.STL');
 [x,y,z]=ind2sub(size(OUTPUTgrid), find(OUTPUTgrid));
 voxels=[1,0,0;0,0,-1;0,1,0]*[x';y';z'];
-x=voxels(1,:)*10+5;
-y=voxels(2,:)*3+110;
-z=voxels(3,:)*10-10;
+% x=voxels(1,:)*10+5;
+% y=voxels(2,:)*3+110;
+% z=voxels(3,:)*10-10;
+[x,y,z] = scale_shift(voxels,fv1);
 vox_obs1=[x',y',z'];
 
 
 scatter3(x,y,z,'fill','m')
 
-[OUTPUTgrid] = VOXELISE(20,20,20,'obstacle.STL');
+[OUTPUTgrid] = VOXELISE(30,30,30,'obstacle.STL');
 [x,y,z]=ind2sub(size(OUTPUTgrid), find(OUTPUTgrid));
 voxels=[1,0,0;0,0,-1;0,1,0]*[x';y';z'];
-x=voxels(1,:)*10+5;
-y=voxels(2,:)*3-45;
-z=voxels(3,:)*10-10;
+% x=voxels(1,:)*10+5;
+% y=voxels(2,:)*3-45;
+% z=voxels(3,:)*10-10;
+[x,y,z] = scale_shift(voxels,fv2);
 vox_obs2=[x',y',z'];
 
 
@@ -78,11 +81,12 @@ obstacles = [goal_pt(1),coords_all(:,1)' ;goal_pt(2),coords_all(:,2)';goal_pt(3)
 
 
 
-%scatter3(vox_h(:,1),vox_h(:,2),vox_h(:,3),'g')
-%scatter3(fv.vertices(:,1),fv.vertices(:,2),fv.vertices(:,3),'fill','r')
-%patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render heart
+scatter3(vox_h(:,1),vox_h(:,2),vox_h(:,3),'g')
+hold on
+% scatter3(fv.vertices(:,1),fv.vertices(:,2),fv.vertices(:,3),'fill','r')
+patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render heart
 patch(fv1,'FaceColor',[1 1 1],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render obstacle1
-%patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render obstacle2 . 
+patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render obstacle2 . 
 camlight('headlight');
 material('dull');
 
