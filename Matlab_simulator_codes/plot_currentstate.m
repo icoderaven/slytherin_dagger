@@ -1,7 +1,7 @@
 function plot_currentstate(state,fv,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,drawType,obstacles,step,maxdist,goal_pt)
     clf
 % compute current features
-[tmpfeat, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt);
+[~,tmpfeat, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt);
 
 drawColor=[0.2 length(state)/66 0.3 ];
 hold on
@@ -17,8 +17,8 @@ hold on
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
 axis([0 150 -50 50 -50 50]);
-plot_dirlines(anchor_pt,normal_vec,tmpfeat(1:end-1))
-plot_dirlines({head_pt},{head_vec},tmpfeat(end))
+plot_dirlines(anchor_pt,normal_vec,tmpfeat)
+plot_dirlines({head_pt},{head_vec},tmpfeat)
 title('0,0')
 view([0,0])
 
@@ -36,8 +36,8 @@ scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 axis([0 150 -50 50 -50 50]);
 %     view([90+state(end-1)*180/pi state(end)*180/pi])
 title('-180,0')
-plot_dirlines(anchor_pt,normal_vec,tmpfeat(1:end-1))
-plot_dirlines({head_pt},{head_vec},tmpfeat(end))
+plot_dirlines(anchor_pt,normal_vec,tmpfeat)
+plot_dirlines({head_pt},{head_vec},tmpfeat)
 view([-180,0])
 
 
@@ -54,8 +54,8 @@ scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
 axis([-10 50 -50 50 -50 50]);
 %     view([90+state(end-1)*180/pi state(end)*180/pi])
-plot_dirlines(anchor_pt,normal_vec,tmpfeat(1:end-1))
-plot_dirlines({head_pt},{head_vec},tmpfeat(end))
+plot_dirlines(anchor_pt,normal_vec,tmpfeat)
+plot_dirlines({head_pt},{head_vec},tmpfeat)
 title('0,90')
 view([0,90])
 
@@ -73,8 +73,8 @@ scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
 axis([0 150 -50 50 -50 50]);
 %view([90+state(end-1)*180/pi state(end)*180/pi])
-plot_dirlines(anchor_pt,normal_vec,tmpfeat(1:end-1))
-plot_dirlines({head_pt},{head_vec},tmpfeat(end))
+plot_dirlines(anchor_pt,normal_vec,tmpfeat)
+plot_dirlines({head_pt},{head_vec},tmpfeat)
 title('-90,90')
 view([-90,90])
 
