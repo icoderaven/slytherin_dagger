@@ -16,7 +16,7 @@ drawColor=[0.2 length(state)/66 0.3 ];
 LINK_LENGTH=15;
 LINK_RADIUS=15;
 drawType=1;
-Tregister=eye(4);
+Tregister=eye(4); 
 linkStartDraw=0;
 
 
@@ -76,9 +76,9 @@ while over==0 && length(state)<66
     if val==32
         
         % COMPUTE All FEATURES of global_state
-        maxdist = 30;
-        step=1;
-        [feat_array, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(global_state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt);
+        maxdist = 300;
+        step=5;
+        [feat_array,tmp_feat,anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(global_state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt);
         
         if expert_prob==1
             pred_yaw = yaw;
