@@ -60,7 +60,7 @@ y2=voxels2(2,:)+20;
 z2=voxels2(3,:);
 
 obstacles = [x, x2;y,y2;z,z2];
-figure('units','normalized','outerposition',[0 0 1 1])
+% figure('units','normalized','outerposition',[0 0 1 1])
 axis([0 150 -50 50 -50 50]);
 grid on
 hold on
@@ -213,9 +213,7 @@ while over==0 && length(state)<66
     
     
     hold off
-    
-    
-    
+      
 end
 h=datestr(clock,30);
 % save(h,'log_data')
