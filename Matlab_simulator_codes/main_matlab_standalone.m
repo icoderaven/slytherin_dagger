@@ -91,7 +91,9 @@ while over==0 && length(state)<66
         state = global_state;
         
     end
-    
+    if val ==107
+        keyboard;
+    end
     if val==113
         display('[snake_visualize_keyboard_jc]: Stopping the loop')
         over=1;
