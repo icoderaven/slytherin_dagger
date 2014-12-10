@@ -1,4 +1,4 @@
-function [feat_array, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,voxels,step,maxdist)
+function [feat_array, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,voxels,step,maxdist,goal_pt)
 %modified the draw state function to compute the normals to all snake links
 % function [h, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw)
 
@@ -16,7 +16,7 @@ T(3,1:3) = [-sin(ry), sin(rx)*cos(ry), cos(rx)*cos(ry)];
 
 snakePoints = [];
 if (linkStartDraw == 0)
-    point1 = Tregister*T*[-LINK_LENGTH; 0; 0; 1];   
+    point1 = Tregister*T*[-LINK_LENGTH; 0; 0; 1];
     point2 = Tregister*T*[0; 0; 0; 1];
     for u = 0:0.1:1.0,
         snakePoints = [snakePoints, [(1-u).*point1 + u.*point2]];
@@ -53,7 +53,7 @@ for j = 1:numAdditionalSegments,
     
     % draw the link
     if (j >= linkStartDraw)
-        point1 = Tregister*T*[-LINK_LENGTH; 0; 0; 1];   
+        point1 = Tregister*T*[-LINK_LENGTH; 0; 0; 1];
         point2 = Tregister*T*[0; 0; 0; 1];
         [normal_vec{j},anchor_pt{j},~] = computeLinkNormals(T, LINK_LENGTH, LINK_RADIUS);
         for u = 0:0.1:1.0,
@@ -73,14 +73,28 @@ feat_array = zeros([num_links*num_facades + 1,1]);
 counter = 1;
 
 for i=1:num_links
-for j=1:num_facades
-feat_array(counter) = distance2obstacle(anchor_pt{i}(j,:),normal_vec{i}(j,:),voxels,step,maxdist); 
-% normal_vec{i}(j,:) = normal_vec{i}(j,:)*feat_array(counter);
-counter = counter+1;
-end
+    for j=1:num_facades
+        feat_array(counter) = distance2obstacle(anchor_pt{i}(j,:),normal_vec{i}(j,:),voxels,step,maxdist);
+        % normal_vec{i}(j,:) = normal_vec{i}(j,:)*feat_array(counter);
+        counter = counter+1;
+    end
 end
 
 feat_array(end) = distance2obstacle(head_pt,head_vec,voxels,step,maxdist);
 head_vec = head_vec*feat_array(end);
+
+
+distanceToGoal=norm(snakePoints(end,:)-goal_pt);
+cur_vec=snakePoints(end,:)-snakePoints(end-1,:);
+req_vec=goal_pt-snakePoints(end,:);
+angleToGoal= acos(cur_vec*req_vec'/(norm(cur_vec)*norm(req_vec)));
+
+% Those points are used to compute bounding box
+spx=snakePoints(:,1);spy=snakePoints(:,2);spz=snakePoints(:,3);
+xadd=[spx(1);spx(1);spx(1);spx(1);spx(2);spx(2);spx(2);spx(2)];
+yadd=[spy(1)+LINK_RADIUS;spy(1)-LINK_RADIUS;spy(1);spy(1);spy(2)+LINK_RADIUS;spy(2)-LINK_RADIUS;spy(2);spy(2)];
+zadd=[spz(1);spz(1);spz(1)-LINK_RADIUS;spz(1)+LINK_RADIUS;spz(1);spz(2);spz(2)-LINK_RADIUS;spz(2)+LINK_RADIUS];
+
+[rotmat,cornerpoints,volume,surface,edgelength] = minboundbox([snakePoints(:,1);xadd],[snakePoints(:,2);yadd],[snakePoints(:,3);zadd]);
 
 end

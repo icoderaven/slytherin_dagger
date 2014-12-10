@@ -131,15 +131,15 @@ while over==0 && length(state)<66
 
     scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
     [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-    %% Distance to goal
-    distanceToGoal=norm(snakePoints(end,:),goal_pt);
+    % Distance to goal
+    distanceToGoal=norm(snakePoints(end,:)-goal_pt);
     cur_vec=snakePoints(end,:)-snakePoints(end-1,:);
     req_vec=goal_pt-snakePoints(end,:);
     angleToGoal= acos(cur_vec*req_vec'/(norm(cur_vec)*norm(req_vec)));
     
 
     
-    %%
+    %
     %%%%%the next two lines will ifnd the bounding box and plot it. We
     %%%%%include the points on circumference of cylinder to the snake
     %%%%%points and then plot them. The variable volume returns the volume

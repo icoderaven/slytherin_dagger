@@ -1,24 +1,24 @@
 %%%%% Start ROSCORE from terminal before creating the nodes in matlab
 % create node that publishes [features actions] to record_simul_bag topic
-'if ~ exist('feat_action_node','var')
-    display('Creating Node')
-    feat_action_node = rosmatlab.node('feature_action_node');%, roscore.RosMasterUri);
-    
-    % publishers
-    %     rec_pub = rosmatlab.publisher('sim_rec', 'std_msgs/Float32MultiArray', feat_action_node);
-    
-    start_pub  = rosmatlab.publisher('key_start', 'std_msgs/Empty', feat_action_node);
-    
-    stop_pub = rosmatlab.publisher('key_stop', 'std_msgs/Empty', feat_action_node);
-    
-    key_pub = rosmatlab.publisher('key_vel', 'geometry_msgs/Twist', feat_action_node);
-    
-    vis_pub = rosmatlab.publisher('vis_features', 'std_msgs/Float32MultiArray', feat_action_node);
-    
-    state_pub = rosmatlab.publisher('pose_info', 'std_msgs/Float32MultiArray', feat_action_node);
-    % subscriber
-    vel_sub = rosmatlab.subscriber('sim_cmd_vel','geometry_msgs/Twist',10,feat_action_node); % subscribes to a Twist message
-    vel_sub.setOnNewMessageListeners({@update_myglobalstate})
+if ~exist('feat_action_node','var')
+display('Creating Node')
+feat_action_node = rosmatlab.node('feature_action_node');%, roscore.RosMasterUri);
+
+% publishers
+%     rec_pub = rosmatlab.publisher('sim_rec', 'std_msgs/Float32MultiArray', feat_action_node);
+
+start_pub  = rosmatlab.publisher('key_start', 'std_msgs/Empty', feat_action_node);
+
+stop_pub = rosmatlab.publisher('key_stop', 'std_msgs/Empty', feat_action_node);
+
+key_pub = rosmatlab.publisher('key_vel', 'geometry_msgs/Twist', feat_action_node);
+
+vis_pub = rosmatlab.publisher('vis_features', 'std_msgs/Float32MultiArray', feat_action_node);
+
+state_pub = rosmatlab.publisher('pose_info', 'std_msgs/Float32MultiArray', feat_action_node);
+% subscriber
+vel_sub = rosmatlab.subscriber('sim_cmd_vel','geometry_msgs/Twist',10,feat_action_node); % subscribes to a Twist message
+vel_sub.setOnNewMessageListeners({@update_myglobalstate})
 end
 %%
 close all
@@ -29,7 +29,7 @@ pitch0=0;
 yaw0=0;
 [phi0,theta0]=pithyawtoaxisangle(pitch0,yaw0);
 
-% glbal_state is where the snake actually advances. 
+% glbal_state is where the snake actually advances.
 global global_state;
 global_state = [0,0,0,0,0,0,phi0,theta0];
 % state is used for expert exploration, once global_state is updated,
@@ -87,10 +87,10 @@ if start_flag ==1
     pause(0.1); % to give the bag file time to start recording
 end
 
-while over==0 && length(state)<66 
+while over==0 && length(state)<66
     
     
-%     [voxel_mat,filled_voxels,flag,validpoints]=findvoxelsinbox(voxels,snakePoints(end,:)',boxsize,steps);
+    %     [voxel_mat,filled_voxels,flag,validpoints]=findvoxelsinbox(voxels,snakePoints(end,:)',boxsize,steps);
     val=getkey();
     
     %read from keyboard
@@ -99,11 +99,11 @@ while over==0 && length(state)<66
     if val==32
         %if flag==1
         count=count+1;
-%         log_data{count}=[filled_voxels,pitch,yaw];
+        %         log_data{count}=[filled_voxels,pitch,yaw];
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Publish features
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% and actions
-                % COMPUTE DISTANCE FEATURES
+        % COMPUTE DISTANCE FEATURES
         maxdist = 30;
         step=1;
         [feat_array, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(global_state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist);
@@ -131,7 +131,7 @@ while over==0 && length(state)<66
         %         state=adderror(state,1);
         %         state=[state,0,0];
         [feat_array, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(global_state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist);
-
+        
     end
     
     if val==113
@@ -151,13 +151,13 @@ while over==0 && length(state)<66
     scatter3(x,y,z,'red','fill','s');
     hold on
     scatter3(x2,y2,z2,'blue','s')
-
+    
     scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
     [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-%     P1 = snakePoints(end,:);
-%     P2 = snakePoints(end,:)+100*(snakePoints(end,:)-snakePoints(end-1,:))/norm((snakePoints(end,:)-snakePoints(end-1,:)));
-%     pts = [P1; P2];
-%     line(pts(:,1), pts(:,2), pts(:,3))
+    %     P1 = snakePoints(end,:);
+    %     P2 = snakePoints(end,:)+100*(snakePoints(end,:)-snakePoints(end-1,:))/norm((snakePoints(end,:)-snakePoints(end-1,:)));
+    %     pts = [P1; P2];
+    %     line(pts(:,1), pts(:,2), pts(:,3))
     axis([0 150 -50 50 -50 50]);
     plot_dirlines(anchor_pt,normal_vec,feat_array(1:end-1))
     plot_dirlines({head_pt},{head_vec},feat_array(end))
@@ -171,7 +171,7 @@ while over==0 && length(state)<66
     scatter3(x2,y2,z2,'blue','s')
     scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
     [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-%     line(pts(:,1), pts(:,2), pts(:,3))
+    %     line(pts(:,1), pts(:,2), pts(:,3))
     axis([0 150 -50 50 -50 50]);
     %     view([90+state(end-1)*180/pi state(end)*180/pi])
     title('-180,0')
@@ -187,7 +187,7 @@ while over==0 && length(state)<66
     scatter3(x2,y2,z2,'blue','s')
     scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
     [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-%     line(pts(:,1), pts(:,2), pts(:,3))
+    %     line(pts(:,1), pts(:,2), pts(:,3))
     axis([-10 50 -50 50 -50 50]);
     %     view([90+state(end-1)*180/pi state(end)*180/pi])
     plot_dirlines(anchor_pt,normal_vec,feat_array(1:end-1))
@@ -203,7 +203,7 @@ while over==0 && length(state)<66
     scatter3(x2,y2,z2,'blue','s')
     scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
     [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-%     line(pts(:,1), pts(:,2), pts(:,3))
+    %     line(pts(:,1), pts(:,2), pts(:,3))
     axis([0 150 -50 50 -50 50]);
     %view([90+state(end-1)*180/pi state(end)*180/pi])
     plot_dirlines(anchor_pt,normal_vec,feat_array(1:end-1))
@@ -213,7 +213,7 @@ while over==0 && length(state)<66
     
     
     hold off
-      
+    
 end
 h=datestr(clock,30);
 % save(h,'log_data')
