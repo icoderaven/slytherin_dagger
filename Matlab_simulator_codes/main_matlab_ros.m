@@ -67,7 +67,7 @@ obstacles = [goal_pt(1) x;goal_pt(2) y;goal_pt(3) z];
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [h, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
 
-
+%%
 
 over=0;
 pitch=0;
@@ -98,7 +98,7 @@ while over==0 && length(state)<66
         % COMPUTE All FEATURES of global_state
         maxdist = 30;
         step=1;
-        [feat_array, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(global_state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt,xadd,yadd,zadd);
+        [feat_array, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(global_state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt);
 
         display('[snake_visualize_keyboard_jc]: publishing features')
         vis_msg = rosmatlab.message('std_msgs/Float32MultiArray', feat_action_node);
@@ -131,90 +131,7 @@ while over==0 && length(state)<66
         stop_pub.publish(stop_msg);
     end
     
-%     clf
-    % compute current features 
-    [tmpfeat, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt,xadd,yadd,zadd);
-
-    drawColor=[0.2 length(state)/66 0.3 ];
-    hold on
-    subplot(2,2,1)
-    
-    patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-    camlight('headlight');
-    material('dull');
-    hold on
-    %scatter3(x2,y2,z2,'blue','s')
-    [~, obstacle] = drawState([10,10,10,0,pi/2,0],[0,0,1],LINK_LENGTH,2*LINK_RADIUS,drawType,Tregister,linkStartDraw);
-    
-    scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
-    [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-    axis([0 150 -50 50 -50 50]);
-    plot_dirlines(anchor_pt,normal_vec,tmpfeat(1:end-1))
-    plot_dirlines({head_pt},{head_vec},tmpfeat(end))
-    title('0,0')
-    view([0,0])
-    
-    subplot(2,2,2)
-    
-    patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-    camlight('headlight');
-    material('dull');
-    hold on
-    %scatter3(x2,y2,z2,'blue','s')
-    [~, obstacle] = drawState([10,10,10,0,pi/2,0],[0,0,1],LINK_LENGTH,2*LINK_RADIUS,drawType,Tregister,linkStartDraw);
-    
-    scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
-    [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-        line(pts(:,1), pts(:,2), pts(:,3))
-    axis([0 150 -50 50 -50 50]);
-    %     view([90+state(end-1)*180/pi state(end)*180/pi])
-    title('-180,0')
-    plot_dirlines(anchor_pt,normal_vec,tmpfeat(1:end-1))
-    plot_dirlines({head_pt},{head_vec},tmpfeat(end))
-    view([-180,0])
-    
-    
-    subplot(2,2,3)
-    
-    patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-    camlight('headlight');
-    material('dull');
-    hold on
-    %scatter3(x2,y2,z2,'blue','s')
-    [~, obstacle] = drawState([10,10,10,0,pi/2,0],[0,0,1],LINK_LENGTH,2*LINK_RADIUS,drawType,Tregister,linkStartDraw);
-    
-    scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
-    [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-        line(pts(:,1), pts(:,2), pts(:,3))
-    axis([-10 50 -50 50 -50 50]);
-    %     view([90+state(end-1)*180/pi state(end)*180/pi])
-    plot_dirlines(anchor_pt,normal_vec,tmpfeat(1:end-1))
-    plot_dirlines({head_pt},{head_vec},tmpfeat(end))
-    title('0,90')
-    view([0,90])
-    
-    
-    
-    subplot(2,2,4)
-    patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-    camlight('headlight');
-    material('dull');
-    hold on
-    %scatter3(x2,y2,z2,'blue','s')
-    [~, obstacle] = drawState([10,10,10,0,pi/2,0],[0,0,1],LINK_LENGTH,2*LINK_RADIUS,drawType,Tregister,linkStartDraw);
-    
-    scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
-    [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-    
-        line(pts(:,1), pts(:,2), pts(:,3))
-    axis([0 150 -50 50 -50 50]);
-    %view([90+state(end-1)*180/pi state(end)*180/pi])
-    plot_dirlines(anchor_pt,normal_vec,tmpfeat(1:end-1))
-    plot_dirlines({head_pt},{head_vec},tmpfeat(end))
-    title('-90,90')
-    view([-90,90])
-    
-    
+    plot_currentstate(state,fv,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,drawType,obstacles,step,maxdist,goal_pt)
     hold off
     
 end
