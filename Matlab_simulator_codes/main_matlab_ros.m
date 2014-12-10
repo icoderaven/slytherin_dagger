@@ -20,6 +20,7 @@ if ~exist('feat_action_node','var')
     vel_sub = rosmatlab.subscriber('sim_cmd_vel','geometry_msgs/Twist',10,feat_action_node); % subscribes to a Twist message
     vel_sub.setOnNewMessageListeners({@update_myglobalstate})
 end
+
 %%
 close all
 % position of the target
