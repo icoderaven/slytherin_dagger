@@ -45,7 +45,7 @@ hold on
 %scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'fill','k')
 [OUTPUTgrid] = VOXELISE(30,30,30,'heart.STL');
 [x,y,z]=ind2sub(size(OUTPUTgrid), find(OUTPUTgrid));
-% voxels=R*[x';y';z'];
+voxels=R*[x';y';z'];
 % x=voxels(1,:)*4+60;
 % y=voxels(2,:)*3+40;
 % z=voxels(3,:)*6-20;
@@ -110,7 +110,7 @@ while over==0 && length(state)<66
     
     %read expert input from keyboard
     [yaw,pitch,state] = get_expert_cmd(state,yaw,pitch,maxrange,inc,val);
-    
+
     if val==32
         
         % COMPUTE All FEATURES of global_state
@@ -124,14 +124,17 @@ while over==0 && length(state)<66
         end
         % update global state based on yaw,pitch
         update_myglobalstate_matlab(pred_yaw,pred_pitch)
+        global_state
         % update state for plotting
         pitch=0;yaw=0;
         state = global_state;
         
     end
+    
     if val ==107
         keyboard;
     end
+    
     if val==113
         display('[snake_visualize_keyboard_jc]: Stopping the loop')
         over=1;
