@@ -6,6 +6,6 @@ end
 
 for i=1:size(feat_action_matrix,1)
     msg = rosmatlab.message('std_msgs/Float32MultiArray', feat_action_publisher);
-    msg.setData(feat_matrix(i,:));
+    msg.setData(feat_action_matrix(i,:));
     publisher.publish(msg);
 end

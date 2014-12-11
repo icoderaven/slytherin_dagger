@@ -192,7 +192,7 @@ class Dataset:
             bag.close()
         f.close()
 
-    def load_matlab(self, ds, path_bag, feat_record):
+    def load_matlab(self, ds, path_bag, feat_record,act_record):
         rospy.loginfo("[DAgger] Opening dataset %s", ds)
         last_nb = 0
         f = open(ds, 'r')
@@ -511,7 +511,7 @@ if __name__ == '__main__':
     if learner.dataset_train != "":
         ds_train_orig = Dataset()
 
-        ds_train_orig.load3(learner.dataset_train, learner.path_bag, learner.feat_record, learner.act_record)
+        ds_train_orig.load_matlab(learner.dataset_train, learner.path_bag, learner.feat_record, learner.act_record)
         ds_train_orig.random_permute()
         ds_train = ds_train_orig
 
@@ -565,7 +565,7 @@ if __name__ == '__main__':
 
     ####################################### TEST DATASET ###############################################
     if learner.dataset_test != "":
-        ds_test.load3(learner.dataset_test, learner.path_bag, learner.feat_record,learner.act_record)
+        ds_test.load_matlab(learner.dataset_test, learner.path_bag, learner.feat_record,learner.act_record)
 
         rospy.loginfo("[DAgger] Testing on a total of %d datapoints with %d features. Avg. absolute yaw %f , Avg. absolute pitch %f",
                       ds_test.r, ds_test.c, abs(ds_test.yaw).mean(), abs(ds_test.pitch).mean())

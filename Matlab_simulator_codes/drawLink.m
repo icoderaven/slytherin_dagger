@@ -32,7 +32,7 @@ else
         end
     end
     h = [h, patch(xs,ys,zs,drawColor)];
-    set(h(end),'FaceColor',drawColor,'EdgeColor',0.8.*drawColor,'EdgeLighting','phong','FaceLighting','phong','EdgeAlpha',1.0,'FaceAlpha',0);
+    set(h(end),'FaceColor',drawColor,'EdgeColor',0.8.*drawColor,'EdgeLighting','phong','FaceLighting','phong','EdgeAlpha',1.0,'FaceAlpha',0.5);
     set(h(end),'SpecularStrength',0.4,'AmbientStrength',0.3,'DiffuseStrength',0.9,'SpecularExponent',100);
 end
     
