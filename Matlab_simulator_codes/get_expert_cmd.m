@@ -14,7 +14,7 @@ function [yaw,pitch,state] = get_expert_cmd(state,yaw,pitch,maxrange,inc,val)
         elseif val==31
             yaw=yaw-inc;
         else
-        display('press a different key');
+%         display('press a different key');
     
     
         end

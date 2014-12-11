@@ -1,17 +1,19 @@
 function plot_currentstate(state,fv,fv1,fv2,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,drawType,obstacles,step,maxdist,goal_pt)
 clf
 % compute current features
-% [tmptmp,tmpfeat, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt);
+[tmptmp,tmpfeat, anchor_pt,normal_vec,head_pt,head_vec] = computeStateFeatures(state,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,obstacles,step,maxdist,goal_pt);
 
-% head_feat = [tmptmp(3*size(anchor_pt{1},1) + 1),tmptmp(3*size(anchor_pt{1},1) + 1)];
+head_feat = [tmptmp(3*size(anchor_pt{1},1) + 1),tmptmp(3*size(anchor_pt{1},1) + 1)];
+subplot(1,2,1)
 
 drawColor=[0.2 length(state)/66 0.3 ];
 hold on
-subplot(2,2,1)
-% % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-% % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-% % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+%subplot(2,2,1)
+ patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15,'FaceAlpha',0.1);
+ patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+ patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
 hold on
+%scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'m')
 
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
@@ -31,18 +33,18 @@ maxz = max([snakePoints(:,3);fv.vertices(:,3);fv1.vertices(:,3);fv2.vertices(:,3
 
 % axis([0 1500 -500 500 -500 500]);
 axis([minx,maxx,miny,maxy,minz,maxz])
-% plot_dirlines(anchor_pt,normal_vec,tmpfeat)
-% plot_dirlines({head_pt},{head_vec},head_feat)
+plot_dirlines(anchor_pt,normal_vec,tmpfeat)
+plot_dirlines({head_pt},{head_vec},head_feat)
 % campos([113,23,16])
 % campos([goal_pt(1),goal_pt(2),goal_pt(3)+100])
 title('0,0')
 % view([0,0])
 
-subplot(2,2,2)
+subplot(1,2,2)
 
-% % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-% % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-% % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
 campos([mean(fv.vertices(:,1)),mean(fv.vertices(:,2)),mean(fv.vertices(:,3))+100])
 
 camlight('headlight');
@@ -57,53 +59,55 @@ scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 axis([minx,maxx,miny,maxy,minz,maxz])
 %     view([90+state(end-1)*180/pi state(end)*180/pi])
 title('-180,0')
-% plot_dirlines(anchor_pt,normal_vec,tmpfeat)
-% plot_dirlines({head_pt},{head_vec},head_feat)
+plot_dirlines(anchor_pt,normal_vec,tmpfeat)
+plot_dirlines({head_pt},{head_vec},head_feat)
 % view([-180,0])
 
-
-subplot(2,2,3)
-% % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-% % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-% % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-campos([mean(fv1.vertices(:,1)),min(fv1.vertices(:,2))-30,mean(fv1.vertices(:,3))+200])
-camlight('headlight');
-material('dull');
-hold on
-
-% scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
-[~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-% axis([-100 500 -500 500 -500 500]);
-axis([minx,maxx,miny,maxy,minz,maxz])
-%     view([90+state(end-1)*180/pi state(end)*180/pi])
-% plot_dirlines(anchor_pt,normal_vec,tmpfeat)
-% plot_dirlines({head_pt},{head_vec},head_feat)
-title('0,90')
+% 
+% subplot(2,2,3)
+% % % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% campos([mean(fv1.vertices(:,1)),min(fv1.vertices(:,2))-30,mean(fv1.vertices(:,3))+200])
+% camlight('headlight');
+% material('dull');
+% hold on
+% 
+% % scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
+% [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+% % axis([-100 500 -500 500 -500 500]);
+% axis([minx,maxx,miny,maxy,minz,maxz])
+% %     view([90+state(end-1)*180/pi state(end)*180/pi])
+% % plot_dirlines(anchor_pt,normal_vec,tmpfeat)
+% % plot_dirlines({head_pt},{head_vec},head_feat)
+% title('0,90')
 
 % view([0,90])
 
 
 
-subplot(2,2,4)
-% % % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-% % % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-% % % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% subplot(2,2,4)
+% % % % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % % % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % % % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% 
+% hold on
+% 
+% scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
+% [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
+% % axis([0 1500 -500 500 -500 500]);
+% axis([minx,maxx,miny,maxy,minz,maxz])
+% %view([90+state(end-1)*180/pi state(end)*180/pi])
+% % plot_dirlines(anchor_pt,normal_vec,tmpfeat)
+% % plot_dirlines({head_pt},{head_vec},head_feat)
+% title('-90,90')
+% % view([-90,90])
+% campos([mean(fv.vertices(:,1)),mean(fv.vertices(:,2)),mean(fv.vertices(:,3))-100])
+% camlight('headlight');
+% material('dull');
 
-hold on
-
-scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
-[~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
-% axis([0 1500 -500 500 -500 500]);
-axis([minx,maxx,miny,maxy,minz,maxz])
-%view([90+state(end-1)*180/pi state(end)*180/pi])
-% plot_dirlines(anchor_pt,normal_vec,tmpfeat)
-% plot_dirlines({head_pt},{head_vec},head_feat)
-title('-90,90')
-% view([-90,90])
-campos([mean(fv.vertices(:,1)),mean(fv.vertices(:,2)),mean(fv.vertices(:,3))-100])
-camlight('headlight');
-material('dull');
-
+snake_heading_pt = snakePoints(end,:) + head_feat(1)*head_vec/norm(head_vec);
+suptitle(['Snakehead position: ',num2str(snakePoints(end,1)),', ',num2str(snakePoints(end,2)),', ',num2str(snakePoints(end,1)),'goingTo',num2str(snake_heading_pt(end,1)),', ',num2str(snake_heading_pt(end,2)),', ',num2str(snake_heading_pt(end,3))])
 
 hold off
 
