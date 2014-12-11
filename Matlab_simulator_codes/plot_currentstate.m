@@ -8,11 +8,10 @@ clf
 drawColor=[0.2 length(state)/66 0.3 ];
 hold on
 subplot(2,2,1)
-patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
 hold on
-% scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'m')
 
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
@@ -41,9 +40,9 @@ title('0,0')
 
 subplot(2,2,2)
 
-patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
 campos([mean(fv.vertices(:,1)),mean(fv.vertices(:,2)),mean(fv.vertices(:,3))+100])
 
 camlight('headlight');
@@ -52,7 +51,6 @@ hold on
 %scatter3(x2,y2,z2,'blue','s')
 
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
-% scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'m')
 
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
 % axis([0 1500 -500 500 -500 500]);
@@ -65,15 +63,13 @@ title('-180,0')
 
 
 subplot(2,2,3)
-patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
 campos([mean(fv1.vertices(:,1)),min(fv1.vertices(:,2))-30,mean(fv1.vertices(:,3))+200])
 camlight('headlight');
 material('dull');
 hold on
-%scatter3(x2,y2,z2,'blue','s')
-% scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'m')
 
 % scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);
@@ -89,13 +85,11 @@ title('0,90')
 
 
 subplot(2,2,4)
-patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
-patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % % patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % % patch(fv1,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
+% % % patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);
 
 hold on
-%scatter3(x2,y2,z2,'blue','s')
-% scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'m')
 
 scatter3(goal_pt(1),goal_pt(2),goal_pt(3),150,'green','fill')
 [~, snakePoints] = drawState(state,drawColor,LINK_LENGTH,LINK_RADIUS,drawType,Tregister,linkStartDraw);

@@ -81,10 +81,10 @@ obstacles = [goal_pt(1),coords_all(:,1)' ;goal_pt(2),coords_all(:,2)';goal_pt(3)
 
 
 % scatter3(vox_h(:,1),vox_h(:,2),vox_h(:,3),'g')
-scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'m')
+%scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'m')
 hold on
 % scatter3(fv.vertices(:,1),fv.vertices(:,2),fv.vertices(:,3),'fill','r')
-patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render heart
+patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15,'FaceAlpha',0.2);%render heart
 patch(fv1,'FaceColor',[1 1 1],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render obstacle1
 patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render obstacle2 . 
 camlight('headlight');
@@ -141,8 +141,12 @@ while over==0 && length(state)<66
         
     end
     
+    if val~=32 && val~=107 && val~=113 
+        display('press a different key');
+    end
+    
     % PLOT FOR EXPLORATION
-    plot_currentstate(state,fv,fv1,fv2,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,drawType,obstacles,step,maxdist,goal_pt)
+    plot_currentstate_simple(state,fv,fv1,fv2,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,drawType,obstacles,step,maxdist,goal_pt)
     hold off
     
 end

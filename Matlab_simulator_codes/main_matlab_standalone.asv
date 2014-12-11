@@ -38,28 +38,55 @@ offset_obstacle2=[10,-100,0];
 %Add more if required
 %offset_obstacle3=[-10,-10,10];
 %[ vox_obs3,fv3] = findFilledVoxelsAndRender('obstacle.STL',R,scale,offset_obstacle3 );
-coords_all=[vox_h;vox_obs1;vox_obs2];
-
-obstacles = [goal_pt(1),coords_all(:,1)' ;goal_pt(2),coords_all(:,2)';goal_pt(3),coords_all(:,3)'];
-
 figure('units','normalized','outerposition',[0 0 1 1])
 axis([0 500 -200 200 -200 200]);
 grid on
 hold on
 %scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'fill','k')
-[OUTPUTgrid] = VOXELISE(20,20,20,'heart.STL');
+[OUTPUTgrid] = VOXELISE(30,30,30,'heart.STL');
 [x,y,z]=ind2sub(size(OUTPUTgrid), find(OUTPUTgrid));
 voxels=R*[x';y';z'];
-x=voxels(1,:)*4+60;
-y=voxels(2,:)*3+40;
-z=voxels(3,:)*6-20;
+% x=voxels(1,:)*4+60;
+% y=voxels(2,:)*3+40;
+% z=voxels(3,:)*6-20;
+[x,y,z] = scale_shift(voxels,fv);
+vox_h=[x',y',z'];
 
-scatter3(x,y,z,'fill','m')
-%scatter3(vox_h(:,1),vox_h(:,2),vox_h(:,3),'g')
-scatter3(fv.vertices(:,1),fv.vertices(:,2),fv.vertices(:,3),'fill','r')
-%patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render heart
-%patch(fv1,'FaceColor',[1 1 1],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render obstacle1
-%patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render obstacle2 . 
+
+[OUTPUTgrid] = VOXELISE(30,30,30,'obstacle.STL');
+[x,y,z]=ind2sub(size(OUTPUTgrid), find(OUTPUTgrid));
+voxels=[1,0,0;0,0,-1;0,1,0]*[x';y';z'];
+% x=voxels(1,:)*10+5;
+% y=voxels(2,:)*3+110;
+% z=voxels(3,:)*10-10;
+[x,y,z] = scale_shift(voxels,fv1);
+vox_obs1=[x',y',z'];
+
+
+
+[OUTPUTgrid] = VOXELISE(30,30,30,'obstacle.STL');
+[x,y,z]=ind2sub(size(OUTPUTgrid), find(OUTPUTgrid));
+voxels=[1,0,0;0,0,-1;0,1,0]*[x';y';z'];
+% x=voxels(1,:)*10+5;
+% y=voxels(2,:)*3-45;
+% z=voxels(3,:)*10-10;
+[x,y,z] = scale_shift(voxels,fv2);
+vox_obs2=[x',y',z'];
+
+
+coords_all=[vox_h;vox_obs1;vox_obs2];
+
+obstacles = [goal_pt(1),coords_all(:,1)' ;goal_pt(2),coords_all(:,2)';goal_pt(3),coords_all(:,3)'];
+
+
+
+% scatter3(vox_h(:,1),vox_h(:,2),vox_h(:,3),'g')
+%scatter3(obstacles(1,:),obstacles(2,:),obstacles(3,:),'m')
+hold on
+% scatter3(fv.vertices(:,1),fv.vertices(:,2),fv.vertices(:,3),'fill','r')
+patch(fv,'FaceColor',[1 0 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15,'FaceAlpha',0.2);%render heart
+patch(fv1,'FaceColor',[1 1 1],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render obstacle1
+patch(fv2,'FaceColor',[1 1 0],'EdgeColor','none','FaceLighting','gouraud','AmbientStrength', 0.15);%render obstacle2 . 
 camlight('headlight');
 material('dull');
 
@@ -102,17 +129,23 @@ while over==0 && length(state)<66
         state = global_state;
         
     end
-    
+    if val ==107
+        keyboard;
+    end
     if val==113
         display('[snake_visualize_keyboard_jc]: Stopping the loop')
         over=1;
         
     end
     
-    % PLOT FOR EXPLORATION
-    plot_currentstate(state,fv,fv1,fv2,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,drawType,obstacles,step,maxdist,goal_pt)
-    hold off
+    if val~=32 && val~=107 && val~=113 
+        display('press a different key');
+    end
     
+    % PLOT FOR EXPLORATION
+    plot_currentstate_simple(state,fv,fv1,fv2,LINK_LENGTH,LINK_RADIUS,Tregister,linkStartDraw,drawType,obstacles,step,maxdist,goal_pt)
+    hold off
+   feat_array, yaw, pitch, pred_yaw,pred_pitch 
 end
 h=datestr(clock,30);
 % save(h,'log_data')
