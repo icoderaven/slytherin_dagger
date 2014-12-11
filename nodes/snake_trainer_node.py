@@ -220,14 +220,14 @@ class Dataset:
                 ar = np.array(msg.data)
                 if self.r == 0:
                     #The first 18 elements are features, the next 4 are expert_yaw, expert_pitch, pred_yaw, pred_pitch
-                    self.X = ar[0:17]
+                    self.X = ar[0:18]
                     feat_time = t.to_sec()
                     print "feat_time ", feat_time
                 else:
-                    self.X = np.vstack((self.X, ar[0:17]))
+                    self.X = np.vstack((self.X, ar[0:18]))
                     feat_time = np.vstack((feat_time, t.to_sec()))
-                yaw = ar[18]
-                pitch = ar[19]
+                yaw = ar[19]
+                pitch = ar[20]
                 self.yaw = np.append(self.yaw, yaw)
                 self.pitch = np.append(self.pitch, pitch)
                 self.r += 1
