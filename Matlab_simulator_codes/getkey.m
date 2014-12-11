@@ -57,14 +57,14 @@ t00 = tic ; % start time of this function
 error(nargchk(0,2,nargin))
 switch nargin
     case 0
-        nonascii = '' ;
+        nonascii = '';
         N = 1 ;
     case 1
         if ischar(N),
             nonascii = N ;
             N = 1 ;
         else
-            nonascii = '' ;
+            nonascii = '';
         end
 end
 
