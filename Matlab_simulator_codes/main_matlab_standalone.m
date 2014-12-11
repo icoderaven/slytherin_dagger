@@ -1,3 +1,8 @@
+expert_prob=1;
+if expert_prob <1
+   pit_predictor = load('./predictors/bestl1-it0s_pitpredictor-1.000000-pit.txt');
+   yaw_predictor = load(['./predictors/bestl1-it0s_yawpredictor-2.000000-yaw']);
+end
 %%
 close all
 % position of the target
@@ -94,7 +99,6 @@ inc=1*pi/180;
 maxrange=10*pi/180;
 boxsize=100;
 steps=50;
-expert_prob=1;
 feat_action_matrix = [];
 maxdist = 300;
 step=5;
