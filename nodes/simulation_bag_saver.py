@@ -21,7 +21,7 @@ class BagSaver:
     def __init__(self):
         self.feat_topic = rospy.get_param('feat_topic', default='record_simul_bag')
         self.bag_file_path = rospy.get_param('~bag_file_path',
-                                             default='/media/Obelix/GraduateSchool/FallCourses14/16831/project/snake_robot_project/src/slytherin_dagger/Simulation_bags/bags/it2_'+str(rospy.Time.now().secs)+'.bag')
+                                             default='/media/Obelix/GraduateSchool/FallCourses14/16831/project/snake_robot_project/src/slytherin_dagger/Simulation_bags/bags/it4_'+str(rospy.Time.now().secs)+'.bag')
 
         self.last_time = rospy.Time.now()
 

@@ -1,7 +1,7 @@
-expert_prob=0.5;
-it_num = 'it2';
+expert_prob=0;
+it_num = 'it4';
 if expert_prob <1
-    pit_predictor = load(['./predictors/bestl1-',it_num,'s_pitpredictor-2.000000-pit.txt']);
+    pit_predictor = load(['./predictors/bestl1-',it_num,'s_pitpredictor-20.000000-pit.txt']);
     yaw_predictor = load(['./predictors/bestl1-',it_num,'s_yawpredictor-1.000000-yaw.txt']);
 end
 %%
@@ -120,8 +120,8 @@ while over==0 && length(state)<66
         pred_yaw = exp_yaw;
         pred_pitch = exp_pitch;
         if expert_prob<1 && rand >= expert_prob
-            pred_yaw = linear_predictor(feat_array,yaw_predictor);
-            pred_pit = linear_predictor(feat_array,pit_predictor);
+            pred_yaw = linear_predictor(feat_array,yaw_predictor)
+            pred_pitch = linear_predictor(feat_array,pit_predictor)
         end
         feat_action_matrix = [feat_action_matrix;feat_array(:)',exp_yaw,exp_pitch,pred_yaw,pred_pitch];
         % update global state based on yaw,pitch
@@ -153,6 +153,6 @@ while over==0 && length(state)<66
 end
 h=datestr(clock,30);
 display('Saving file')
-save(['it3_data/it3_feat_action_matrix', h],'feat_action_matrix','snakePoints','state');
+save(['it5_data/it5_feat_action_matrix', h],'feat_action_matrix','snakePoints','state');
 % save(h,'log_data')
 % end
