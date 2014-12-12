@@ -6,7 +6,7 @@ for j=1:length(anchor_pt)
         tmp =repmat(anchor_pt{j}(i,:),[d(j,i)+1,1])+repmat([0:d(j,i)].',[1,3]).*repmat(tmp_vec,[d(j,i)+1,1]);
         if d(j,i) >45
             plot3(tmp(:,1),tmp(:,2),tmp(:,3),'b')
-        elseif d(j,i)>20
+        elseif d(j,i)>15
             plot3(tmp(:,1),tmp(:,2),tmp(:,3),'g','LineWidth',3)
         else
             plot3(tmp(:,1),tmp(:,2),tmp(:,3),'r','LineWidth',3)
